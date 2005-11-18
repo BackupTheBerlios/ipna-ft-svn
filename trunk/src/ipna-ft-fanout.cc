@@ -20,15 +20,57 @@ typedef int Port;
 typedef string Ip;
 typedef pair<Ip, Port> IpPortPair;
 
-struct cnfp_header_v9 {
-    unsigned short cnfp_pdu_version;
-    unsigned short cnfp_pdu_count;
-    unsigned int cnfp_pdu_uptime;
-    unsigned int cnfp_pdu_tstamp;
-    unsigned int cnfp_pdu_seq;
-    int cnfp_pdu_sourceid;
+struct cnfp_common_hdr {
+    unsigned short version;
+    unsigned short count;
 };
 
+struct cnfp_v1_hdr {
+    struct cnfp_common_hdr common;
+    unsigned int uptime;
+    unsigned int tstamp;
+    unsigned int nanosecs;
+};
+
+struct cnfp_v5_hdr {
+    struct cnfp_common_hdr common;
+    unsigned int uptime;   // uptime of exporting device
+    unsigned int tstamp;   // current time of exporting device
+    unsigned int nanosecs; // nano seconds residual
+    unsigned int seq; // number of total flows seen
+    unsigned char engine_type;
+    unsigned char engine_id;
+    unsigned short padding;
+};
+
+struct cnfp_v7_hdr {
+    struct cnfp_common_hdr common;
+    unsigned int uptime;
+    unsigned int tstamp;
+    unsigned int nanosecs;
+    unsigned int seq;
+    unsigned int reserved;
+};
+
+struct cnfp_v8_hdr {
+    struct cnfp_common_hdr common;
+    unsigned int uptime;
+    unsigned int tstamp;
+    unsigned int nanosecs;
+    unsigned int seq;
+    unsigned char engine_type;
+    unsigned char engine_id;
+    unsigned char agg;
+    unsigned char aggversion;
+};
+
+struct cnfp_v9_hdr {
+    struct cnfp_common_hdr common;
+    unsigned int uptime;
+    unsigned int tstamp;
+    unsigned int seq;
+    int engine_id;
+};
 
 bool checkIpPortPair(IpPortPair& p) {
     Ip ip = p.first;
@@ -201,7 +243,7 @@ int main(int argc, char** argv) {
 
     for(;;) {
         struct sockaddr_in from;
-        struct cnfp_header_v9 header;
+        struct cnfp_v9_hdr header;
         unsigned int from_len = sizeof(struct sockaddr);
 
         memset(buffer, 0, MAXBUFLEN);
@@ -214,23 +256,23 @@ int main(int argc, char** argv) {
         }
 
         // analyze a bit
-        header = *(struct cnfp_header_v9*)buffer;
+        header = *(struct cnfp_v9_hdr*)buffer;
 
         if (verbosity > 0) {
             fprintf(stdout, "version:%d, count:%d, uptime:%d, tstamp:%d, seq:%d, source:%d\n",
-                    ntohs(header.cnfp_pdu_version),
-                    ntohs(header.cnfp_pdu_count),
-                    ntohl(header.cnfp_pdu_uptime),
-                    ntohl(header.cnfp_pdu_tstamp),
-                    ntohl(header.cnfp_pdu_seq),
-                    ntohl(header.cnfp_pdu_sourceid)
+                    ntohs(header.common.version),
+                    ntohs(header.common.count),
+                    ntohl(header.uptime),
+                    ntohl(header.tstamp),
+                    ntohl(header.seq),
+                    ntohl(header.engine_id)
                 );
         }
 
-        if ((lastsequence+1) != ntohl(header.cnfp_pdu_seq)) {
-            cerr << "missed " << (ntohl(header.cnfp_pdu_seq)-lastsequence) << " packet(s)" << endl;
+        if ((lastsequence+1) != ntohl(header.seq)) {
+            cerr << "missed " << (ntohl(header.seq)-lastsequence) << " packet(s)" << endl;
         }
-        lastsequence = ntohl(header.cnfp_pdu_seq);
+        lastsequence = ntohl(header.seq);
         
         // forward it...
         for (unsigned int i = 0; i < destinationAddr.size(); ++i) {

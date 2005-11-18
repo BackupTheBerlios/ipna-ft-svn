@@ -20,6 +20,16 @@ typedef int Port;
 typedef string Ip;
 typedef pair<Ip, Port> IpPortPair;
 
+struct cnfp_header_v9 {
+    unsigned short cnfp_pdu_version;
+    unsigned short cnfp_pdu_count;
+    unsigned int cnfp_pdu_uptime;
+    unsigned int cnfp_pdu_tstamp;
+    unsigned int cnfp_pdu_seq;
+    int cnfp_pdu_sourceid;
+};
+
+
 bool checkIpPortPair(IpPortPair& p) {
     Ip ip = p.first;
     Port port = p.second;
@@ -66,19 +76,20 @@ splitIntoIpPortPair(const string& s) {
 }
 
 int main(int argc, char** argv) {
-    string listenString;
-    
+    int verbosity;
+
     // 1. parse options
     // 2. listen on specified source
     // 3. loop:
     //    send packets to specified destinations
     po::options_description desc("Allowed options");
     desc.add_options()
-        ("help,h", "show this help message")
-        ("4,ipv4", "use ipv4")
-        ("6,ipv6", "use ipv6, that is the default but currently not implemented!")
+        ("help", "show this help message")
+        ("verbose,v", "verbose output, debuglevel = number of -v")
+        ("ipv4,4", "use ipv4")
+        ("ipv6,6", "use ipv6, that is the default but currently not implemented!")
         ("only-from,o", po::value<string>(), "fan out packets only from this source ip")
-        ("listen,l", po::value<string>(&listenString), "listen on ip/port")
+        ("listen,l", po::value<string>(), "listen on ip/port")
         ("export,e", po::value< vector<string> >(), "export to these probes (ip/port)")
         ;
     po::positional_options_description p;
@@ -104,6 +115,8 @@ int main(int argc, char** argv) {
         exit(2);
     }
 
+    verbosity = vm.count("verbose");
+
     // parse listen pair and check it
     IpPortPair listenPair = splitIntoIpPortPair( vm["listen"].as<string>() );
     if (!checkIpPortPair(listenPair)) {
@@ -123,13 +136,15 @@ int main(int argc, char** argv) {
         exportPairs.push_back(p);
     }
 
-    cout << "listening on ip:" << listenPair.first << " port:" << listenPair.second << endl;
-    cout << "exporting to:";
-    for (unsigned int i = 0; i < exports.size(); ++i) {
-        IpPortPair p = exportPairs[i];
-        cout << " ip:" << p.first << " port:" << p.second;
+    if (verbosity > 1) {
+        cout << "listening on ip:" << listenPair.first << " port:" << listenPair.second << endl;
+        cout << "exporting to:";
+        for (unsigned int i = 0; i < exports.size(); ++i) {
+            IpPortPair p = exportPairs[i];
+            cout << " ip:" << p.first << " port:" << p.second;
+        }
+        cout << endl;
     }
-    cout << endl;
 
     int listenFd;
     int sendFd;
@@ -148,12 +163,6 @@ int main(int argc, char** argv) {
     my_addr.sin_port = htons(listenPair.second);
     my_addr.sin_addr.s_addr = inet_addr(listenPair.first.c_str());
     memset(&(my_addr.sin_zero), '\0', 8);
-    
-    int yes = 1;
-    if (setsockopt(listenFd,SOL_SOCKET,SO_REUSEADDR,&yes,sizeof(int)) == -1) {
-        perror("setsockopt");
-        exit(1);
-    }
 
     // create send socket
     sendFd = socket(PF_INET, SOCK_DGRAM, 0);
@@ -166,13 +175,9 @@ int main(int argc, char** argv) {
     my_send_addr.sin_port = htons(0);
     my_send_addr.sin_addr.s_addr = htonl(INADDR_ANY);
     memset(&(my_send_addr.sin_zero), '\0', 8);
-    
-    if (setsockopt(sendFd,SOL_SOCKET,SO_REUSEADDR,&yes,sizeof(int)) == -1) {
-        perror("setsockopt");
-        exit(1);
-    }
 
-    // listen
+    // listen, note: we dont have set the reuse option, since we dont want to have two
+    // fanouts listen on the same ip/port
     if (bind(listenFd, (struct sockaddr*)&my_addr, sizeof(struct sockaddr)) == -1 ) {
         perror("bind");
         exit(1);
@@ -189,13 +194,16 @@ int main(int argc, char** argv) {
         memset(&(to.sin_zero), '\0', 8);
         destinationAddr.push_back(to);
     }
-    
+
+    unsigned int lastsequence = 0;
     const unsigned int MAXBUFLEN = 2048;
     char buffer[MAXBUFLEN];
-    
+
     for(;;) {
         struct sockaddr_in from;
+        struct cnfp_header_v9 header;
         unsigned int from_len = sizeof(struct sockaddr);
+
         memset(buffer, 0, MAXBUFLEN);
         int received = recvfrom(listenFd, &buffer[0], MAXBUFLEN, 0 /*flags*/, (struct sockaddr*)&from, &from_len);
         if (received < 0) {
@@ -204,8 +212,26 @@ int main(int argc, char** argv) {
             close(sendFd);
             exit(1);
         }
-//        cout << "received data of size: " << received << endl;
-//        cout << "+";
+
+        // analyze a bit
+        header = *(struct cnfp_header_v9*)buffer;
+
+        if (verbosity > 0) {
+            fprintf(stdout, "version:%d, count:%d, uptime:%d, tstamp:%d, seq:%d, source:%d\n",
+                    ntohs(header.cnfp_pdu_version),
+                    ntohs(header.cnfp_pdu_count),
+                    ntohl(header.cnfp_pdu_uptime),
+                    ntohl(header.cnfp_pdu_tstamp),
+                    ntohl(header.cnfp_pdu_seq),
+                    ntohl(header.cnfp_pdu_sourceid)
+                );
+        }
+
+        if ((lastsequence+1) != ntohl(header.cnfp_pdu_seq)) {
+            cerr << "missed " << (ntohl(header.cnfp_pdu_seq)-lastsequence) << " packet(s)" << endl;
+        }
+        lastsequence = ntohl(header.cnfp_pdu_seq);
+        
         // forward it...
         for (unsigned int i = 0; i < destinationAddr.size(); ++i) {
             int sent = sendto(sendFd, &buffer[0], received, 0, (struct sockaddr*)&(destinationAddr[i]), sizeof(struct sockaddr));
@@ -217,8 +243,6 @@ int main(int argc, char** argv) {
             } else if (sent != received) {
                 cerr << "WARN: could not send all data at once!" << endl;
             }
-//            cout << "-";
-//            cout.flush();
         }
     }
 }

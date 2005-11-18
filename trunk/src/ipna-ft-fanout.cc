@@ -169,10 +169,10 @@ int main(int argc, char** argv) {
     // parse export pairs and check them
     vector<IpPortPair> exportPairs;
     vector<string> exports = vm["export"].as< vector<string> >();
-    for (unsigned int i = 0; i < exports.size(); ++i) {
-        IpPortPair p = splitIntoIpPortPair(exports[i]);
+    for (vector<string>::iterator it = exports.begin(); it != exports.end(); it++) {
+        IpPortPair p = splitIntoIpPortPair(*it);
         if (!checkIpPortPair(p)) {
-            cerr << "ERROR: invalid ip/port pair: " << exports[i] << endl;
+            cerr << "ERROR: invalid ip/port pair: " << *it << endl;
             exit(3);
         }
         exportPairs.push_back(p);
@@ -181,9 +181,8 @@ int main(int argc, char** argv) {
     if (verbosity > 1) {
         cout << "listening on ip:" << listenPair.first << " port:" << listenPair.second << endl;
         cout << "exporting to:";
-        for (unsigned int i = 0; i < exports.size(); ++i) {
-            IpPortPair p = exportPairs[i];
-            cout << " ip:" << p.first << " port:" << p.second;
+        for (vector<IpPortPair>::iterator it = exportPairs.begin(); it != exportPairs.end(); it++) {
+            cout << " ip:" << it->first << " port:" << it->second;
         }
         cout << endl;
     }
@@ -227,12 +226,11 @@ int main(int argc, char** argv) {
 
     // create destination infos:
     vector< struct sockaddr_in > destinationAddr;
-    for (unsigned int i = 0; i < exports.size(); ++i) {
-        IpPortPair p = exportPairs[i];
+    for (vector<IpPortPair>::iterator it = exportPairs.begin(); it != exportPairs.end(); it++) {
         struct sockaddr_in to;
         to.sin_family = AF_INET;
-        to.sin_port = htons(p.second);
-        to.sin_addr.s_addr = inet_addr(p.first.c_str());
+        to.sin_port = htons(it->second);
+        to.sin_addr.s_addr = inet_addr(it->first.c_str());
         memset(&(to.sin_zero), '\0', 8);
         destinationAddr.push_back(to);
     }
@@ -255,7 +253,7 @@ int main(int argc, char** argv) {
             exit(1);
         }
 
-        // analyze a bit
+        // analyze a little bit
         header = *(struct cnfp_v9_hdr*)buffer;
 
         if (verbosity > 0) {
@@ -273,10 +271,9 @@ int main(int argc, char** argv) {
             cerr << "missed " << (ntohl(header.seq)-lastsequence) << " packet(s)" << endl;
         }
         lastsequence = ntohl(header.seq);
-        
-        // forward it...
-        for (unsigned int i = 0; i < destinationAddr.size(); ++i) {
-            int sent = sendto(sendFd, &buffer[0], received, 0, (struct sockaddr*)&(destinationAddr[i]), sizeof(struct sockaddr));
+
+        for (vector<struct sockaddr_in>::iterator it = destinationAddr.begin(); it != destinationAddr.end(); it++) {
+            int sent = sendto(sendFd, &buffer[0], received, 0, (struct sockaddr*)&(*it), sizeof(struct sockaddr));
             if (sent == -1) {
                 perror("sendto");
                 close(listenFd);

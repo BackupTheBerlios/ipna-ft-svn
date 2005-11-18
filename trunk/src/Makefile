@@ -7,7 +7,7 @@ PREFIX=/home/ipna
 SRCS=$(wildcard *.cc)
 HDRS=$(wildcard *.h)
 OBJS=$(SRCS:.cc=.o)
-BINS=$(SRCS:.cc=)
+BINS=ipna-ft-fanout
 
 .PHONY: default all clean install
 
@@ -27,7 +27,8 @@ default: all
 
 all: $(BINS)
 
-$(BINS): $(OBJS) $(HDRS)
+$(OBJS): $(HDRS) $(SRS)
+$(BINS): $(OBJS)
 
 install: $(BINS)
 	cp -p $(BINS) $(PREFIX)/bin

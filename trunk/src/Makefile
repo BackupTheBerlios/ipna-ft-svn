@@ -20,8 +20,8 @@ BINS=ipna-ft-fanout
 	@$(CXX) -c $(CXXFLAGS) $(CPPFLAGS) $< -o $@
 
 % : %.o
-	@echo "[LD ] $<"
-	@$(CXX) $(LDFLAGS) $< $(LOADLIBES) $(LDLIBS) -o $@
+	@echo "[LD ] $^"
+	@$(CC) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
 default: all
 

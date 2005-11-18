@@ -13,64 +13,15 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/classification.hpp>
 
+#include "Socket.h"
+#include "cnfp.h"
+
 namespace po = boost::program_options;
 using namespace std;
 
 typedef int Port;
 typedef string Ip;
 typedef pair<Ip, Port> IpPortPair;
-
-struct cnfp_common_hdr {
-    unsigned short version;
-    unsigned short count;
-};
-
-struct cnfp_v1_hdr {
-    struct cnfp_common_hdr common;
-    unsigned int uptime;
-    unsigned int tstamp;
-    unsigned int nanosecs;
-};
-
-struct cnfp_v5_hdr {
-    struct cnfp_common_hdr common;
-    unsigned int uptime;   // uptime of exporting device
-    unsigned int tstamp;   // current time of exporting device
-    unsigned int nanosecs; // nano seconds residual
-    unsigned int seq; // number of total flows seen
-    unsigned char engine_type;
-    unsigned char engine_id;
-    unsigned short padding;
-};
-
-struct cnfp_v7_hdr {
-    struct cnfp_common_hdr common;
-    unsigned int uptime;
-    unsigned int tstamp;
-    unsigned int nanosecs;
-    unsigned int seq;
-    unsigned int reserved;
-};
-
-struct cnfp_v8_hdr {
-    struct cnfp_common_hdr common;
-    unsigned int uptime;
-    unsigned int tstamp;
-    unsigned int nanosecs;
-    unsigned int seq;
-    unsigned char engine_type;
-    unsigned char engine_id;
-    unsigned char agg;
-    unsigned char aggversion;
-};
-
-struct cnfp_v9_hdr {
-    struct cnfp_common_hdr common;
-    unsigned int uptime;
-    unsigned int tstamp;
-    unsigned int seq;
-    int engine_id;
-};
 
 bool checkIpPortPair(IpPortPair& p) {
     Ip ip = p.first;
@@ -187,43 +138,32 @@ int main(int argc, char** argv) {
         cout << endl;
     }
 
-    int listenFd;
-    int sendFd;
-
-    struct sockaddr_in my_addr;
-    struct sockaddr_in my_send_addr;
+    Socket* listenSocket;
+    Socket* sendSocket;
+    int error;
     
-    // create listen socket
-    listenFd = socket(PF_INET, SOCK_DGRAM, 0);
-    if (listenFd < 0) {
-        perror("socket");
+    try {
+        listenSocket = Socket::UDPSocket();
+    } catch (string s) {
+        cerr << s << endl;
         exit(3);
     }
-
-    my_addr.sin_family = AF_INET;
-    my_addr.sin_port = htons(listenPair.second);
-    my_addr.sin_addr.s_addr = inet_addr(listenPair.first.c_str());
-    memset(&(my_addr.sin_zero), '\0', 8);
-
-    // create send socket
-    sendFd = socket(PF_INET, SOCK_DGRAM, 0);
-    if (sendFd < 0) {
-        perror("socket");
-        exit(3);
-    }
-
-    my_send_addr.sin_family = AF_INET;
-    my_send_addr.sin_port = htons(0);
-    my_send_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    memset(&(my_send_addr.sin_zero), '\0', 8);
-
-    // listen, note: we dont have set the reuse option, since we dont want to have two
-    // fanouts listen on the same ip/port
-    if (bind(listenFd, (struct sockaddr*)&my_addr, sizeof(struct sockaddr)) == -1 ) {
+    if(listenSocket->bind(listenPair.first, listenPair.second) < 0) {
         perror("bind");
-        exit(1);
+        exit(3);
     }
 
+    try {
+        sendSocket = Socket::UDPSocket();
+    } catch (string s) {
+        cerr << s << endl;
+        exit(3);
+    }
+    if (sendSocket->bind("*",0) < 0) {
+        perror("bind");
+        exit(3);
+    }
+    
     // create destination infos:
     vector< struct sockaddr_in > destinationAddr;
     for (vector<IpPortPair>::iterator it = exportPairs.begin(); it != exportPairs.end(); it++) {
@@ -242,14 +182,14 @@ int main(int argc, char** argv) {
     for(;;) {
         struct sockaddr_in from;
         struct cnfp_v9_hdr header;
-        unsigned int from_len = sizeof(struct sockaddr);
+        unsigned int fromlen = sizeof(struct sockaddr);
 
         memset(buffer, 0, MAXBUFLEN);
-        int received = recvfrom(listenFd, &buffer[0], MAXBUFLEN, 0 /*flags*/, (struct sockaddr*)&from, &from_len);
+        int received = listenSocket->recvfrom(buffer, MAXBUFLEN, (struct sockaddr*)&from, &fromlen);
         if (received < 0) {
             perror("recvfrom");
-            close(listenFd);
-            close(sendFd);
+            delete listenSocket;
+            delete sendSocket;
             exit(1);
         }
 
@@ -273,11 +213,11 @@ int main(int argc, char** argv) {
         lastsequence = ntohl(header.seq);
 
         for (vector<struct sockaddr_in>::iterator it = destinationAddr.begin(); it != destinationAddr.end(); it++) {
-            int sent = sendto(sendFd, &buffer[0], received, 0, (struct sockaddr*)&(*it), sizeof(struct sockaddr));
+            int sent = sendSocket->sendto(buffer, received, (struct sockaddr*)&(*it));
             if (sent == -1) {
                 perror("sendto");
-                close(listenFd);
-                close(sendFd);
+                delete listenSocket;
+                delete sendSocket;
                 exit(1);
             } else if (sent != received) {
                 cerr << "WARN: could not send all data at once!" << endl;

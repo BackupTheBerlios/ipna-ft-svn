@@ -175,15 +175,21 @@ int main(int argc, char** argv) {
         destinationAddr.push_back(to);
     }
 
-    unsigned int lastsequence = 0;
+    unsigned int lastSequenceIdx = 0;
     const unsigned int MAXBUFLEN = 2048;
     char buffer[MAXBUFLEN];
+
+    const unsigned int SEQLEN = 32;
+    unsigned int sequenceNumber[SEQLEN] = {0};
+//    for (unsigned int i = 0; i < SEQLEN; ++i)
+//        sequenceNumber[i] = 0;
 
     for(;;) {
         struct sockaddr_in from;
         struct cnfp_v9_hdr header;
         unsigned int fromlen = sizeof(struct sockaddr);
-
+        unsigned int newSequence;
+        
         memset(buffer, 0, MAXBUFLEN);
         int received = listenSocket->recvfrom(buffer, MAXBUFLEN, (struct sockaddr*)&from, &fromlen);
         if (received < 0) {
@@ -195,9 +201,10 @@ int main(int argc, char** argv) {
 
         // analyze a little bit
         header = *(struct cnfp_v9_hdr*)buffer;
-
+        newSequence = ntohl(header.seq);
+        
         if (verbosity > 0) {
-            fprintf(stdout, "version:%d, count:%d, uptime:%d, tstamp:%d, seq:%d, source:%d\n",
+            fprintf(stdout, "version:%d count:%d uptime:%d tstamp:%d seq:%d source:%d\n",
                     ntohs(header.common.version),
                     ntohs(header.common.count),
                     ntohl(header.uptime),
@@ -207,10 +214,24 @@ int main(int argc, char** argv) {
                 );
         }
 
-        if ((lastsequence+1) != ntohl(header.seq)) {
-            cerr << "missed " << (ntohl(header.seq)-lastsequence) << " packet(s)" << endl;
+        unsigned int foundIdx = SEQLEN;
+        // look if we had the sequence number - 1 in our window... worst-case: O(n) best-case: O(1)
+        for (unsigned int i = lastSequenceIdx; i != (lastSequenceIdx-1)%SEQLEN; i = (i+1)%SEQLEN) {
+            if ((sequenceNumber[i]+1) == newSequence) {
+                foundIdx = i;
+                break;
+            }
         }
-        lastsequence = ntohl(header.seq);
+
+        if (foundIdx != SEQLEN && ((sequenceNumber[lastSequenceIdx]+1) != newSequence)) {
+            cerr << "WARN: packet-reordering occured within window: [" << sequenceNumber[foundIdx] << ":" << sequenceNumber[lastSequenceIdx] << "]" << endl;
+        } else if (foundIdx == SEQLEN) {
+            cerr << "WARN: missed " << (int)(newSequence - sequenceNumber[lastSequenceIdx]) << " packet(s)" << endl;
+        }
+
+        // store the new sequence
+        lastSequenceIdx = (lastSequenceIdx+1)%SEQLEN;
+        sequenceNumber[lastSequenceIdx] = newSequence;
 
         for (vector<struct sockaddr_in>::iterator it = destinationAddr.begin(); it != destinationAddr.end(); it++) {
             int sent = sendSocket->sendto(buffer, received, (struct sockaddr*)&(*it));

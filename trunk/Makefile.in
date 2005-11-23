@@ -1,0 +1,17 @@
+builddir=@builddir@
+bindir=@bindir@
+
+exec_prefix=@exec_prefix@
+prefix=@prefix@
+
+srcdir=./src
+
+.PHONY: $(srcdir)
+
+default: all
+
+all: $(srcdir)
+
+$(srcdir):
+	make -C $(srcdir)
+

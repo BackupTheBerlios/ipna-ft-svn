@@ -78,7 +78,12 @@ splitIntoIpPortPair(const string& s) {
 
 int main(int argc, char** argv) {
     string pidfile;
-
+    {
+        vector<string> splitted;
+        boost::split(splitted, argv[0], boost::algorithm::is_any_of("/"));
+        pidfile = string("/tmp/").append(splitted[splitted.size()-1]).append(".pid");
+    }
+    
     // 1. parse options
     // 2. listen on specified source
     // 3. loop:
@@ -90,7 +95,7 @@ int main(int argc, char** argv) {
     try {
         desc.add_options()
             ("help,h", po::value< vector<bool> >()->zero_tokens(), "show this help message")
-            ("pidfile,p", po::value<string>(), "use this file to store the pid")
+            ("pidfile,p", po::value<string>()->default_value(pidfile), "use this file to store the pid")
             ("verbose,v", po::value< vector<int> >()->implicit()->composing(), "verbose output")
             ("ipv4,4", "use ipv4")
             ("ipv6,6", "use ipv6, that is the default but currently not implemented!")
@@ -117,21 +122,34 @@ int main(int argc, char** argv) {
 
     verbosity = 0;
     if (vm.count("verbose")) {
-        verbosity = 1;
+        vector<int> v = vm["verbose"].as<vector<int> >();
+        if (!v.empty()) {
+            verbosity = *max_element(v.begin(),v.end());
+        } else {
+            verbosity = 1;
+        }
     }
 
     if (vm.count("help")) {
         cerr << desc << endl;
         exit(0);
     }
-
-    if (0 == vm.count("pidfile")) {
-        vector<string> splitted;
-        boost::split(splitted, argv[0], boost::algorithm::is_any_of("/"));
-        pidfile = string("/tmp/").append(splitted[splitted.size()-1]).append(".pid");
-    } else {
+    
+    if (vm.count("pidfile")) {
         pidfile = vm["pidfile"].as<string>();
     }        
+
+    if (0 == vm.count("listen")) {
+        ERROR("no ip/port pair specified to listen on!");
+        cerr << desc << endl;
+        exit(1);
+    }
+
+    if (0 == vm.count("export")) {
+        ERROR("no ip/port pair specified to export to!");
+        cerr << desc << endl;
+        exit(2);
+    }
 
     DEBUG("using pidfile: \"" << pidfile << "\"");
 
@@ -147,18 +165,6 @@ int main(int argc, char** argv) {
         exit(1);
     }
     
-    if (0 == vm.count("listen")) {
-        ERROR("no ip/port pair specified to listen on!");
-        cerr << desc << endl;
-        exit(1);
-    }
-
-    if (0 == vm.count("export")) {
-        ERROR("no ip/port pair specified to export to!");
-        cerr << desc << endl;
-        exit(2);
-    }
-
     // parse listen pair and check it
     IpPortPair listenPair = splitIntoIpPortPair( vm["listen"].as<string>() );
     if (!checkIpPortPair(listenPair)) {

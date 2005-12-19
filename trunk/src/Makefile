@@ -1,6 +1,6 @@
 LDLIBS=-lboost_program_options
 CXXFLAGS=-O3 -g
-CXX=g++-3.3
+#CXX=g++-3.3
 
 PREFIX=/home/ipna
 

@@ -96,7 +96,7 @@ int main(int argc, char** argv) {
         desc.add_options()
             ("help,h", po::value< vector<bool> >()->zero_tokens(), "show this help message")
             ("pidfile,p", po::value<string>()->default_value(pidfile), "use this file to store the pid")
-            ("verbose,v", po::value< vector<int> >()->implicit()->composing(), "verbose output")
+            ("verbose,v", po::value< vector<int> >()->composing(), "verbose output")
             ("ipv4,4", "use ipv4")
             ("ipv6,6", "use ipv6, that is the default but currently not implemented!")
             ("only-from,o", po::value<string>(), "fan out packets only from this source ip")

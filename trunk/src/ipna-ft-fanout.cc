@@ -41,7 +41,7 @@ bool checkIpPortPair(IpPortPair& p) {
     }
 
     struct hostent *hostCheck = gethostbyname(p.first.c_str());
-    if (NULL == hostCheck) {
+    if (p.first != "*" && NULL == hostCheck) {
         herror("gethostbyname");
         return false;
     }
@@ -96,7 +96,7 @@ int main(int argc, char** argv) {
         desc.add_options()
             ("help,h", po::value< vector<bool> >()->zero_tokens(), "show this help message")
             ("pidfile,p", po::value<string>()->default_value(pidfile), "use this file to store the pid")
-            ("verbose,v", po::value< vector<int> >()->composing(), "verbose output")
+            ("verbose,v", "verbose output")
             ("ipv4,4", "use ipv4")
             ("ipv6,6", "use ipv6, that is the default but currently not implemented!")
             ("only-from,o", po::value<string>(), "fan out packets only from this source ip")
@@ -122,12 +122,7 @@ int main(int argc, char** argv) {
 
     verbosity = 0;
     if (vm.count("verbose")) {
-        vector<int> v = vm["verbose"].as<vector<int> >();
-        if (!v.empty()) {
-            verbosity = *max_element(v.begin(),v.end());
-        } else {
-            verbosity = 1;
-        }
+        verbosity = 1;
     }
 
     if (vm.count("help")) {
@@ -184,13 +179,12 @@ int main(int argc, char** argv) {
         exportPairs.push_back(p);
     }
 
-    if (verbosity > 1) {
-        cout << "DEBUG: listening on ip:" << listenPair.first << " port:" << listenPair.second;
-        cout << "DEBUG: exporting to:";
+    if (verbosity) {
+        DEBUG("listening on ip:" << listenPair.first << " port:" << listenPair.second);
+        DEBUG("exporting to:");
         for (vector<IpPortPair>::iterator it = exportPairs.begin(); it != exportPairs.end(); it++) {
-            cout << " ip:" << it->first << " port:" << it->second;
+            DEBUG("\tip:" << it->first << " port:" << it->second);
         }
-        cout << endl;
     }
 
     Socket* listenSocket;
@@ -236,8 +230,6 @@ int main(int argc, char** argv) {
 
     const unsigned int SEQLEN = 32;
     unsigned int sequenceNumber[SEQLEN] = {0};
-//    for (unsigned int i = 0; i < SEQLEN; ++i)
-//        sequenceNumber[i] = 0;
 
     for(;;) {
         struct sockaddr_in from;
@@ -258,8 +250,8 @@ int main(int argc, char** argv) {
         header = *(struct cnfp_v9_hdr*)buffer;
         newSequence = ntohl(header.seq);
         
-        if (verbosity > 0) {
-            fprintf(stdout, "version:%d count:%d uptime:%d tstamp:%d seq:%d source:%d\n",
+        if (verbosity) {
+            fprintf(stdout, "version:%d count:%u uptime:%u tstamp:%u seq:%u source:%d\n",
                     ntohs(header.common.version),
                     ntohs(header.common.count),
                     ntohl(header.uptime),

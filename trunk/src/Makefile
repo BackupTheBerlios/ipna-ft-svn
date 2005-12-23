@@ -26,7 +26,7 @@ default: all
 
 all: $(BINS)
 
-$(OBJS): $(HDRS) $(SRS)
+$(OBJS): $(HDRS)
 $(BINS): $(OBJS)
 
 install: $(BINS)

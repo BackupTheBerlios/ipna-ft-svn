@@ -2,11 +2,14 @@
 #include <stdio.h>
 #include <sys/socket.h>
 
-#include "FanoutPacketHandler.h"
 #include "Socket.h"
+#include "FanoutPacketHandler.h"
 #include "cnfp.h"
 
 using namespace std;
+using namespace ipna;
+
+Logger::LoggerPtr FanoutPacketHandler::logger = Logger::getLogger("ipna.fanout");
 
 FanoutPacketHandler::FanoutPacketHandler(boost::shared_ptr<Socket> s) :
   socket(s), lastSequenceIdx(0), SEQLEN(32) {
@@ -34,8 +37,8 @@ FanoutPacketHandler::handlePacket(boost::shared_array<char> packet, int len) {
   // analyze a little bit
   header = *(struct cnfp_v9_hdr*)packet.get();
   newSequence = ntohl(header.seq);
-        
-  if (true) {
+
+  if (logger->isDebugEnabled()) {
     fprintf(stdout, "version:%d count:%u uptime:%u tstamp:%u seq:%u source:%d\n",
 	    ntohs(header.common.version),
 	    ntohs(header.common.count),
@@ -59,9 +62,9 @@ FanoutPacketHandler::handlePacket(boost::shared_array<char> packet, int len) {
   }
   
   if (foundIdx != SEQLEN && ((sequenceNumber[lastSequenceIdx]+1) != newSequence)) {
-    cerr << "WARN: packet-reordering occured within window: [" << sequenceNumber[foundIdx] << ":" << sequenceNumber[lastSequenceIdx] << "]" << endl;
+    LOG_WARN("packet-reordering occured within window: [" << sequenceNumber[foundIdx] << ":" << sequenceNumber[lastSequenceIdx] << "]");
   } else if (foundIdx == SEQLEN) {
-    cerr << "WARN: missed " << (int)(newSequence - sequenceNumber[lastSequenceIdx]) << " packet(s)" << endl;
+    LOG_WARN("missed " << (int)(newSequence - sequenceNumber[lastSequenceIdx]) << " packet(s)");
   }
 
   // store the new sequence

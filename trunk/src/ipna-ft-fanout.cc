@@ -21,19 +21,17 @@
 #include "Listener.h"
 #include "PacketHandler.h"
 #include "FanoutPacketHandler.h"
-#include "cnfp.h"
+#include "Logger.hpp"
 
 namespace po = boost::program_options;
 using namespace std;
-
-#define DEBUG(msg) if (verbosity) { cerr << "DEBUG: " << msg << endl; }
-#define ERROR(msg) cerr << "ERROR: " << msg << endl;
+using namespace ipna;
 
 typedef int Port;
 typedef string Ip;
 typedef pair<Ip, Port> IpPortPair;
 
-int verbosity;
+Logger::LoggerPtr logger;
 
 bool checkIpPortPair(IpPortPair& p) {
   Ip ip = p.first;
@@ -70,7 +68,7 @@ splitIntoIpPortPair(const string& s) {
   boost::split(splitted, s, boost::algorithm::is_any_of("/"));
 
   if (splitted.size() != 2) {
-    cerr << "ERROR: invalid ip:port! " << s << endl;
+    LOG_ERROR("invalid ip:port! " << s);
     exit(1);
   }
 
@@ -82,7 +80,9 @@ splitIntoIpPortPair(const string& s) {
 
 int main(int argc, char** argv) {
   string pidfile;
-    
+
+  logger = Logger::getLogger("ipna");    
+
   // 1. parse options
   // 2. listen on specified source
   // 3. loop:
@@ -104,7 +104,7 @@ int main(int argc, char** argv) {
       ;
     p.add("export", -1);
   } catch (po::error & ex) {
-    ERROR(ex.what());
+    LOG_ERROR(ex.what());
     exit(1);
   }
 
@@ -112,18 +112,18 @@ int main(int argc, char** argv) {
     po::store(po::command_line_parser(argc,argv).options(desc).positional(p).run(), vm);
     po::notify(vm);
   } catch (po::error & ex) {
-    ERROR(ex.what());
+    LOG_ERROR(ex.what());
     cerr << desc << endl;
     exit(1);
   } catch (...) {
-    ERROR("unknown things happened!");
+    LOG_ERROR("unknown things happened!");
     exit(1);
   }
 
   if (vm.count("verbose")) {
-    verbosity = 1;
+    Logger::getRootLogger()->setPriority(Logger::DEBUG);
   } else {
-    verbosity = 0;
+    Logger::getRootLogger()->setPriority(Logger::WARN);
   }
 
   if (vm.count("help")) {
@@ -136,18 +136,18 @@ int main(int argc, char** argv) {
   }        
 
   if (0 == vm.count("listen")) {
-    ERROR("no ip/port pair specified to listen on!");
+    LOG_ERROR("no ip/port pair specified to listen on!");
     cerr << desc << endl;
     exit(1);
   }
 
   if (0 == vm.count("export")) {
-    ERROR("no ip/port pair specified to export to!");
+    LOG_ERROR("no ip/port pair specified to export to!");
     cerr << desc << endl;
     exit(2);
   }
 
-  DEBUG("using pidfile: \"" << pidfile << "\"");
+  LOG_DEBUG("using pidfile: \"" << pidfile << "\"");
 
   try {
     ofstream _pid_fstream(pidfile.c_str());
@@ -157,14 +157,14 @@ int main(int argc, char** argv) {
     _pid_fstream << getpid() << endl;
     _pid_fstream.close();
   } catch (string & ex) {
-    ERROR("could not write pid: " + ex);
+    LOG_ERROR("could not write pid: " + ex);
     exit(1);
   }
     
   // parse listen pair and check it
   IpPortPair listenPair = splitIntoIpPortPair( vm["listen"].as<string>() );
   if (!checkIpPortPair(listenPair)) {
-    ERROR("invalid ip/port pair: " << vm["listen"].as<string>().c_str());
+    LOG_ERROR("invalid ip/port pair: " << vm["listen"].as<string>().c_str());
     exit(3);
   }
 
@@ -174,13 +174,13 @@ int main(int argc, char** argv) {
   for (vector<string>::iterator it = exports.begin(); it != exports.end(); it++) {
     IpPortPair p = splitIntoIpPortPair(*it);
     if (!checkIpPortPair(p)) {
-      ERROR("invalid ip/port pair: " << it->c_str());
+      LOG_ERROR("invalid ip/port pair: " << it->c_str());
       exit(3);
     }
     exportPairs.push_back(p);
   }
 
-  DEBUG("listening on ip: " << listenPair.first << " port: " << listenPair.second);
+  LOG_DEBUG("listening on ip: " << listenPair.first << " port: " << listenPair.second);
 
   boost::shared_ptr<Socket> listenSocket;
   boost::shared_ptr<Socket> sendSocket;
@@ -189,24 +189,24 @@ int main(int argc, char** argv) {
   try {
     listenSocket = boost::shared_ptr<Socket>(Socket::UDPSocket());
   } catch (string & s) {
-    ERROR(s);
+    LOG_ERROR(s);
     exit(3);
   }
   if(listenSocket->bind(listenPair.first, listenPair.second) < 0) {
     perror("bind");
-    ERROR("could not bind to listen-socket!");
+    LOG_ERROR("could not bind to listen-socket!");
     exit(3);
   }
 
   try {
     sendSocket = boost::shared_ptr<Socket>(Socket::UDPSocket());
   } catch (string & s) {
-    ERROR(s);
+    LOG_ERROR(s);
     exit(3);
   }
   if (sendSocket->bind("*",0) < 0) {
     perror("bind");
-    ERROR("could not bind to send-socket!");
+    LOG_ERROR("could not bind to send-socket!");
     exit(3);
   }
 

@@ -1,3 +1,3 @@
-Main ipna-ft-fanout : ipna-ft-fanout.cc Socket.cc Listener.cc FanoutPacketHandler.cc ;
+Main ipna-ft-fanout : ipna-ft-fanout.cc Socket.cc Listener.cc FanoutPacketHandler.cc Logger.cc ;
 LINKLIBS on ipna-ft-fanout = -lboost_program_options ;
 

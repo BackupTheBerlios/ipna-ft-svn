@@ -8,11 +8,17 @@
 
 #include <iostream>
 
+#include <boost/shared_ptr.hpp>
+
 #include "Listener.h"
 #include "PacketHandler.h"
 #include "Socket.h"
+#include "Logger.hpp"
 
 using namespace std;
+using namespace ipna;
+
+Logger::LoggerPtr Listener::logger = Logger::getLogger("ipna.ft.listener");
 
 Listener::Listener(boost::shared_ptr<Socket> s, unsigned int maxpacketlen)
   : socket(s), maxpacketlen(maxpacketlen) {

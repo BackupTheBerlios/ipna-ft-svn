@@ -5,25 +5,29 @@
 #include <vector>
 
 #include "PacketHandler.h"
+#include "Logger.hpp"
 
-class Socket;
+namespace ipna {
+  class Socket;
 
-class FanoutPacketHandler : public PacketHandler {
- public:
-  typedef boost::shared_ptr<struct sockaddr_in> DestinationPtr;
-  typedef std::vector<DestinationPtr>::iterator DestinationIterator;
+ class FanoutPacketHandler : public PacketHandler {
+  public:
+    typedef boost::shared_ptr<struct sockaddr_in> DestinationPtr;
+    typedef std::vector<DestinationPtr>::iterator DestinationIterator;
   
-  FanoutPacketHandler(boost::shared_ptr<Socket> s);
-  virtual ~FanoutPacketHandler();
-  virtual bool handlePacket(Packet packet, int len);
-  virtual FanoutPacketHandler* addDestination(DestinationPtr d);
- private:
-  boost::shared_ptr<Socket> socket;
-  std::vector<DestinationPtr> destinations;
+    FanoutPacketHandler(boost::shared_ptr<Socket> s);
+    virtual ~FanoutPacketHandler();
+    virtual bool handlePacket(Packet packet, int len);
+    virtual FanoutPacketHandler* addDestination(DestinationPtr d);
+  private:
+    static Logger::LoggerPtr logger;
+    boost::shared_ptr<Socket> socket;
+    std::vector<DestinationPtr> destinations;
   
-  unsigned int lastSequenceIdx;
-  unsigned int SEQLEN;
-  unsigned int* sequenceNumber;
-};
+    unsigned int lastSequenceIdx;
+    unsigned int SEQLEN;
+    unsigned int* sequenceNumber;
+  };
+}
 
 #endif // FANOUT_PACKET_HANDLER_H

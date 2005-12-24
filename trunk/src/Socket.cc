@@ -6,6 +6,8 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
+using namespace ipna;
+
 Socket::Socket() {
     _fd = -1;
 }

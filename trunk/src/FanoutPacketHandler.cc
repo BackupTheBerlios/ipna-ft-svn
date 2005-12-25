@@ -2,9 +2,9 @@
 #include <stdio.h>
 #include <sys/socket.h>
 
-#include "Socket.h"
-#include "FanoutPacketHandler.h"
-#include "cnfp.h"
+#include "Socket.hpp"
+#include "FanoutPacketHandler.hpp"
+#include "cnfp.hpp"
 
 using namespace std;
 using namespace ipna;
@@ -32,11 +32,10 @@ FanoutPacketHandler::addDestination(DestinationPtr d) {
 bool
 FanoutPacketHandler::handlePacket(boost::shared_array<char> packet, int len) {
   struct cnfp_v9_hdr header;
-  unsigned int newSequence;
   
   // analyze a little bit
   header = *(struct cnfp_v9_hdr*)packet.get();
-  newSequence = ntohl(header.seq);
+  checkSequenceNumber(ntohl(header.seq));
 
   if (logger->isDebugEnabled()) {
     fprintf(stdout, "version:%d count:%u uptime:%u tstamp:%u seq:%u source:%d\n",
@@ -49,6 +48,18 @@ FanoutPacketHandler::handlePacket(boost::shared_array<char> packet, int len) {
 	    );
   }
 
+  // deliver packets
+  for (DestinationIterator d = destinations.begin(); d != destinations.end(); d++) {
+    int sent = socket->sendto(packet.get(), len, (struct sockaddr*)(d->get()));
+    if (sent == -1) {
+      perror("sendto");
+      return false;
+    }  
+  }
+}
+
+void
+FanoutPacketHandler::checkSequenceNumber(unsigned int newSequence) {
   unsigned int foundIdx = SEQLEN;
   // look if we had the sequence number - 1 in our window... worst-case: O(n) best-case: O(1)
   for (unsigned int i = lastSequenceIdx; i != (lastSequenceIdx-1)%SEQLEN; i = (i+1)%SEQLEN) {
@@ -70,13 +81,4 @@ FanoutPacketHandler::handlePacket(boost::shared_array<char> packet, int len) {
   // store the new sequence
   lastSequenceIdx = (lastSequenceIdx+1)%SEQLEN;
   sequenceNumber[lastSequenceIdx] = newSequence;
-
-  // deliver packets
-  for (DestinationIterator d = destinations.begin(); d != destinations.end(); d++) {
-    int sent = socket->sendto(packet.get(), len, (struct sockaddr*)(d->get()));
-    if (sent == -1) {
-      perror("sendto");
-      return false;
-    }  
-  }
 }

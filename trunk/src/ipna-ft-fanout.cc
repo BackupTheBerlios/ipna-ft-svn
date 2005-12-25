@@ -17,10 +17,10 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/classification.hpp>
 
-#include "Socket.h"
-#include "Listener.h"
-#include "PacketHandler.h"
-#include "FanoutPacketHandler.h"
+#include "Socket.hpp"
+#include "Listener.hpp"
+#include "PacketHandler.hpp"
+#include "FanoutPacketHandler.hpp"
 #include "Logger.hpp"
 
 namespace po = boost::program_options;

@@ -5,14 +5,14 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/time.h>
-
+#include <unistd.h>
 #include <iostream>
 
 #include <boost/shared_ptr.hpp>
 
-#include "Listener.h"
-#include "PacketHandler.h"
-#include "Socket.h"
+#include "Listener.hpp"
+#include "PacketHandler.hpp"
+#include "Socket.hpp"
 #include "Logger.hpp"
 
 using namespace std;
@@ -46,14 +46,21 @@ Listener::start() {
       perror("recvfrom");
       return;
     } else {
-      time_t duration = time(NULL);
+      struct timeval tstart, tfinish;
+      double tsecs;
+      
+      gettimeofday(&tstart, NULL);
       for (HandlerIterator h = handler.begin(); h != handler.end(); h++) {
 	if (!h->get()->handlePacket(packet, received)) {
 	  // could not handle packet, so return
+	  LOG_WARN("could not handle packet!");
 	  return;
 	}
       }
-      duration = time(NULL) - duration;
+      gettimeofday(&tfinish, NULL);
+      tsecs = (tfinish.tv_sec - tstart.tv_sec) +
+	1e-6 * (tfinish.tv_usec - tstart.tv_usec);
+      LOG_DEBUG("processing took " << tsecs << "s");
     }
   }
 }

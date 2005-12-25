@@ -4,7 +4,7 @@
 #include <boost/shared_ptr.hpp>
 #include <vector>
 
-#include "PacketHandler.h"
+#include "PacketHandler.hpp"
 #include "Logger.hpp"
 
 namespace ipna {

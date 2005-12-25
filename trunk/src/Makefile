@@ -4,7 +4,7 @@ CXXFLAGS=-O3 -g
 PREFIX=/home/ipna
 
 SRCS=$(wildcard *.cc)
-HDRS=$(wildcard *.h)
+HDRS=$(wildcard *.hpp)
 OBJS=$(SRCS:.cc=.o)
 BINS=ipna-ft-fanout
 
@@ -33,6 +33,6 @@ install: $(BINS)
 	cp -p $(BINS) $(PREFIX)/bin
 
 clean:
-	-rm $(BINS)
-	-rm $(OBJS)
+	-rm $(BINS) 2>/dev/null
+	-rm $(OBJS) 2>/dev/null
 

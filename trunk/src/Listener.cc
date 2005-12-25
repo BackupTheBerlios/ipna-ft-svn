@@ -38,7 +38,7 @@ void
 Listener::start() {
   for (;;) {
     struct sockaddr_in from;
-    unsigned int fromlen = sizeof(struct sockaddr);
+    size_t fromlen = sizeof(struct sockaddr);
     memset(packet.get(), 0, maxpacketlen);
     int received = socket->recvfrom(packet.get(), maxpacketlen, (struct sockaddr*)&from, &fromlen);
     if (received < 0) {

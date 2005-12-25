@@ -45,14 +45,14 @@ ssize_t Socket::send(const void* buffer, size_t len, int flags) {
 }
 
 ssize_t Socket::recvfrom(void* buffer, size_t len, struct sockaddr *from, size_t* fromlen, int flags) {
-    return ::recvfrom(_fd, buffer, len, flags, from, fromlen);
+    return ::recvfrom(_fd, buffer, len, flags, from, (socklen_t*)fromlen);
 }
 
 ssize_t Socket::sendto(const void* buffer, size_t len, const struct sockaddr *to, int flags) {
     return ::sendto(_fd, buffer, len, flags, to, sizeof(struct sockaddr));
 }
 
-int Socket::bind(std::string hostorip, int port) {
+ssize_t Socket::bind(std::string hostorip, int port) {
     _addr.sin_family = AF_INET;
     _addr.sin_port = htons(port);
     if (hostorip == "*") {

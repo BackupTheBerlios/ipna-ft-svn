@@ -20,6 +20,8 @@ namespace ipna {
     virtual bool handlePacket(Packet packet, int len);
     virtual FanoutPacketHandler* addDestination(DestinationPtr d);
   private:
+    void checkSequenceNumber(unsigned int s);
+
     static Logger::LoggerPtr logger;
     boost::shared_ptr<Socket> socket;
     std::vector<DestinationPtr> destinations;

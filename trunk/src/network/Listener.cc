@@ -11,13 +11,14 @@
 #include <boost/timer.hpp>
 #include <boost/shared_ptr.hpp>
 
-#include "Listener.hpp"
-#include "PacketHandler.hpp"
-#include "Socket.hpp"
-#include "Logger.hpp"
+#include <ipna/network/Listener.hpp>
+#include <ipna/network/PacketHandler.hpp>
+#include <ipna/network/Socket.hpp>
+#include <ipna/Logger.hpp>
 
 using namespace std;
 using namespace ipna;
+using namespace ipna::network;
 
 Logger::LoggerPtr Listener::logger = Logger::getLogger("ipna.ft.listener");
 

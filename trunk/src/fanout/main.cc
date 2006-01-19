@@ -17,11 +17,11 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/classification.hpp>
 
-#include "Socket.hpp"
-#include "Listener.hpp"
-#include "PacketHandler.hpp"
-#include "FanoutPacketHandler.hpp"
-#include "Logger.hpp"
+#include <ipna/network/Socket.hpp>
+#include <ipna/network/Listener.hpp>
+#include <ipna/network/PacketHandler.hpp>
+#include <ipna/fanout/FanoutPacketHandler.hpp>
+#include <ipna/Logger.hpp>
 
 namespace po = boost::program_options;
 using namespace std;
@@ -182,12 +182,14 @@ int main(int argc, char** argv) {
 
   LOG_DEBUG("listening on ip: " << listenPair.first << " port: " << listenPair.second);
 
-  boost::shared_ptr<Socket> listenSocket;
-  boost::shared_ptr<Socket> sendSocket;
+  typedef boost::shared_ptr<ipna::network::Socket> SocketPtr;
+
+  SocketPtr listenSocket;
+  SocketPtr sendSocket;
   int error;
     
   try {
-    listenSocket = boost::shared_ptr<Socket>(Socket::UDPSocket());
+    listenSocket = SocketPtr(network::Socket::UDPSocket());
   } catch (string & s) {
     LOG_ERROR(s);
     exit(3);
@@ -199,7 +201,7 @@ int main(int argc, char** argv) {
   }
 
   try {
-    sendSocket = boost::shared_ptr<Socket>(Socket::UDPSocket());
+    sendSocket = SocketPtr(network::Socket::UDPSocket());
   } catch (string & s) {
     LOG_ERROR(s);
     exit(3);
@@ -210,13 +212,13 @@ int main(int argc, char** argv) {
     exit(3);
   }
 
-  boost::shared_ptr<FanoutPacketHandler> fanout(new FanoutPacketHandler(sendSocket));
-  boost::shared_ptr<Listener> listener(new Listener(listenSocket));
+  boost::shared_ptr<ipna::fanout::FanoutPacketHandler> fanout(new ipna::fanout::FanoutPacketHandler(sendSocket));
+  boost::shared_ptr<network::Listener> listener(new network::Listener(listenSocket));
   listener->addHandler(fanout);
     
   // create destination infos:
   for (vector<IpPortPair>::iterator it = exportPairs.begin(); it != exportPairs.end(); it++) {
-    FanoutPacketHandler::DestinationPtr to(new struct sockaddr_in);
+    ipna::fanout::FanoutPacketHandler::DestinationPtr to(new struct sockaddr_in);
     to->sin_family = AF_INET;
     to->sin_port = htons(it->second);
     to->sin_addr.s_addr = inet_addr(it->first.c_str());

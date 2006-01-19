@@ -2,13 +2,16 @@
 #include <stdio.h>
 #include <sys/socket.h>
 
-#include "Socket.hpp"
-#include "FanoutPacketHandler.hpp"
-#include "SequenceNumberChecker.hpp"
-#include "cnfp.hpp"
+#include <ipna/network/Socket.hpp>
+#include <ipna/fanout/FanoutPacketHandler.hpp>
+#include <ipna/network/SequenceNumberChecker.hpp>
+#include <ipna/parser/cnfp.hpp>
 
 using namespace std;
 using namespace ipna;
+using namespace ipna::fanout;
+using namespace ipna::network;
+using namespace ipna::parser;
 
 Logger::LoggerPtr FanoutPacketHandler::logger = Logger::getLogger("ipna.fanout");
 
@@ -16,6 +19,7 @@ FanoutPacketHandler::FanoutPacketHandler(boost::shared_ptr<Socket> s) :
   socket(s), lastSequenceIdx(0), SEQLEN(32), sequenceChecker(new SequenceNumberChecker()) {
   sequenceNumber = new unsigned int[SEQLEN];
   memset(sequenceNumber, 0, SEQLEN * sizeof(unsigned int));
+  //  logger = Logger::getLogger("ipna.fanout");  
 }
 
 FanoutPacketHandler::~FanoutPacketHandler() {

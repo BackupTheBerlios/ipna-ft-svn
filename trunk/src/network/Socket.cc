@@ -1,4 +1,4 @@
-#include "Socket.hpp"
+#include <ipna/network/Socket.hpp>
 
 #include <stdio.h>
 #include <unistd.h>
@@ -7,6 +7,7 @@
 #include <arpa/inet.h>
 
 using namespace ipna;
+using namespace network;
 
 Socket::Socket() {
     _fd = -1;

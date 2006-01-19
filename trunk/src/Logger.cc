@@ -3,7 +3,7 @@
 #include <cassert>
 #include <time.h>
 
-#include "Logger.hpp"
+#include <ipna/Logger.hpp>
 
 using namespace ipna;
 using namespace std;
@@ -12,7 +12,6 @@ typedef map<string, boost::shared_ptr<Logger> > LoggerMap;
 
 LoggerMap Logger::loggerMap;
 char* Logger::priorityNameMap[] = { "FATAL", "ERROR", "WARN", "INFO", "DEBUG", "UNKNOWN" };
-
 
 Logger::Logger(const string& name, Logger::PriorityLevel l)
   : name(name), level(l){
@@ -27,7 +26,7 @@ Logger::getLogger(const std::string& name) {
   if (it != loggerMap.end()) {
     return it->second;
   } else {
-    return newLogger(name,getRootLogger()->getPriority());;
+    return newLogger(name,getRootLogger()->getPriority());
   }
 }
 

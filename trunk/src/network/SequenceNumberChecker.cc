@@ -1,10 +1,10 @@
-#include "SequenceNumberChecker.hpp"
+#include <ipna/network/SequenceNumberChecker.hpp>
 
 #include <sstream>
 #include <iostream>
 
 using namespace std;
-using namespace ipna;
+using namespace ipna::network;
 
 SequenceNumberChecker::SequenceNumberChecker(size_t maxSize)
   : _maxSize(maxSize), _current(0), _lastSequenceIdx(0), _lastState(SEQ_OK) {

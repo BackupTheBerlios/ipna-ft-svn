@@ -2,7 +2,7 @@ builddir=.
 bindir=${exec_prefix}/bin
 
 exec_prefix=${prefix}
-prefix=/home/ipna
+prefix=/usr/local
 
 srcdir=./src
 

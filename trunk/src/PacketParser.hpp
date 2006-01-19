@@ -11,10 +11,13 @@
 namespace ipna {
   class PacketParser {
   public:
-    PacketParser() {}
+    PacketParser(boost::shared_ptr<TemplateManager> templateManager)
+      : _templateManager(templateManager) {}
     virtual ~PacketParser() { }
 
-    boost::shared_ptr<std::vector<Record> > parse(Packet packet, int len);
+    virtual boost::shared_ptr<std::vector<Record> > parse(Packet packet, int len) const = 0;
+  protected:
+    inline boost::shared_ptr<TemplateManager> getTemplateManager() { return _templateManager; }
   private:
     boost::shared_ptr<TemplateManager> _templateManager;
   };

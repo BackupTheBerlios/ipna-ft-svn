@@ -2,7 +2,6 @@
 #define PACKET_HANDLER_H
 
 #include <boost/shared_array.hpp>
-#include "TemplateManager.hpp"
 
 struct sockaddr_in;
 namespace ipna {

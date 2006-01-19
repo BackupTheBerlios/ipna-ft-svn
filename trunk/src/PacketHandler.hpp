@@ -2,7 +2,9 @@
 #define PACKET_HANDLER_H
 
 #include <boost/shared_array.hpp>
+#include "TemplateManager.hpp"
 
+struct sockaddr_in;
 namespace ipna {
   class PacketHandler {
   protected:
@@ -11,7 +13,7 @@ namespace ipna {
     typedef boost::shared_array<char> Packet;
     
     virtual ~PacketHandler() {}
-    virtual bool handlePacket(Packet packet, int len) = 0;
+    virtual bool handlePacket(Packet packet, int len, struct sockaddr_in & from) = 0;
   };
 }
 

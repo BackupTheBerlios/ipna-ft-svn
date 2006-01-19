@@ -4,6 +4,7 @@
 
 #include "Socket.hpp"
 #include "FanoutPacketHandler.hpp"
+#include "SequenceNumberChecker.hpp"
 #include "cnfp.hpp"
 
 using namespace std;
@@ -12,7 +13,7 @@ using namespace ipna;
 Logger::LoggerPtr FanoutPacketHandler::logger = Logger::getLogger("ipna.fanout");
 
 FanoutPacketHandler::FanoutPacketHandler(boost::shared_ptr<Socket> s) :
-  socket(s), lastSequenceIdx(0), SEQLEN(32) {
+  socket(s), lastSequenceIdx(0), SEQLEN(32), sequenceChecker(new SequenceNumberChecker()) {
   sequenceNumber = new unsigned int[SEQLEN];
   memset(sequenceNumber, 0, SEQLEN * sizeof(unsigned int));
 }
@@ -30,12 +31,17 @@ FanoutPacketHandler::addDestination(DestinationPtr d) {
 }
 
 bool
-FanoutPacketHandler::handlePacket(boost::shared_array<char> packet, int len) {
+FanoutPacketHandler::handlePacket(boost::shared_array<char> packet, int len, struct sockaddr_in & from) {
   struct cnfp_v9_hdr header;
   
   // analyze a little bit
   header = *(struct cnfp_v9_hdr*)packet.get();
-  checkSequenceNumber(ntohl(header.seq));
+  //  checkSequenceNumber(ntohl(header.seq));
+  SequenceNumberChecker::SequenceError seq_err =
+    sequenceChecker->check(ntohl(header.seq));
+  if (seq_err == SequenceNumberChecker::SEQ_MISSED) {
+    LOG_WARN("missed " << (int)(sequenceChecker->missed()) << " packet(s)");
+  }
 
   if (logger->isDebugEnabled()) {
     fprintf(stdout, "version:%d count:%u uptime:%u tstamp:%u seq:%u source:%d\n",

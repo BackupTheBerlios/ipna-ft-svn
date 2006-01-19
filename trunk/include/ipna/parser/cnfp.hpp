@@ -3,6 +3,15 @@
 
 namespace ipna {
   namespace parser {
+
+    enum NetflowVersion {
+      CNFPv1 = 1,
+      CNFPv5 = 5,
+      CNFPv7 = 7,
+      CNFPv8 = 8,
+      CNFPv9 = 9
+    };
+      
     struct cnfp_common_hdr {
       unsigned short version;
       unsigned short count;

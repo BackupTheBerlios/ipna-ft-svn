@@ -8,7 +8,6 @@
 #include <ipna/Logger.hpp>
 
 namespace ipna {
-
   namespace network {
     class Socket;
     class SequenceNumberChecker;
@@ -25,16 +24,10 @@ namespace ipna {
       virtual bool handlePacket(Packet packet, int len, struct sockaddr_in & from);
       virtual FanoutPacketHandler* addDestination(DestinationPtr d);
     private:
-      void checkSequenceNumber(unsigned int s);
-      
       static ipna::Logger::LoggerPtr logger;
       boost::shared_ptr<ipna::network::Socket> socket;
       boost::shared_ptr<ipna::network::SequenceNumberChecker> sequenceChecker;
       std::vector<DestinationPtr> destinations;
-      
-      unsigned int lastSequenceIdx;
-      unsigned int SEQLEN;
-      unsigned int* sequenceNumber;
     };
   }
 }

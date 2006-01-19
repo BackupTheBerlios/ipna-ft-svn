@@ -3,17 +3,23 @@ CXXFLAGS=-O3 -g -I../include
 
 PREFIX=/home/ipna
 
-SRCS=network/Socket.cc network/Listener.cc network/SequenceNumberChecker.cc Logger.cc
+SRCS=network/Socket.cc network/Listener.cc network/SequenceNumberChecker.cc network/HostAddress.cc Logger.cc
 HDRS=$(wildcard *.hpp)
 
 FANOUT_SRCS=fanout/main.cc fanout/FanoutPacketHandler.cc $(SRCS)
 FANOUT_OBJS=$(FANOUT_SRCS:.cc=.o)
 FANOUT_BIN=ipna-ft-fanout
 
-BINS=$(FANOUT_BIN)
-OBJS=$(FANOUT_OBJS)
+PARSER_SRCS=parser/ParserFactory.cc
 
-.PHONY: default all fanout clean install
+CAPTURE_SRCS=capture/main.cc capture/CapturePacketHandler.cc $(PARSER_SRCS) $(SRCS)
+CAPTURE_OBJS=$(CAPTURE_SRCS:.cc=.o)
+CAPTURE_BIN=ipna-ft-capture
+
+BINS=$(FANOUT_BIN) $(CAPTURE_BIN)
+OBJS=$(FANOUT_OBJS) $(CAPTURE_OBJ)
+
+.PHONY: default all fanout capture clean install
 
 %.o : %.c
 	@echo "[CC ] $<"
@@ -29,11 +35,16 @@ OBJS=$(FANOUT_OBJS)
 
 default: all
 
-all: fanout
+all: fanout capture
 
 fanout: $(FANOUT_BIN)
+capture: $(CAPTURE_BIN)
 
 $(FANOUT_BIN) : $(FANOUT_OBJS)
+	@echo "[LD ] $^ -> $@"
+	@$(CC) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@
+
+$(CAPTURE_BIN): $(CAPTURE_OBJS)
 	@echo "[LD ] $^ -> $@"
 	@$(CC) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@
 

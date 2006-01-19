@@ -4,20 +4,24 @@
 #include <boost/shared_ptr.hpp>
 #include <vector>
 
-#include <ipna/parser/Record.hpp>
-#include <ipna/parser/TemplateManager.hpp>
 #include <ipna/network/PacketHandler.hpp>
 
 namespace ipna {
   namespace parser {
-     class PacketParser {
+    class TemplateManager;
+    class Record;
+    class Packet;
+    
+    class PacketParser {
     public:
-      PacketParser(boost::shared_ptr<TemplateManager> templateManager)
-	: _templateManager(templateManager) {}
+      typedef boost::shared_ptr<PacketParser> ParserPtr;
+      
+      PacketParser() {}
       virtual ~PacketParser() { }
       
-      virtual boost::shared_ptr<std::vector<Record> > parse(Packet packet, int len) const = 0;
+      virtual boost::shared_ptr<std::vector<boost::shared_ptr<Record> > > parse(Packet packet, int len) const = 0;
     protected:
+      inline void setTemplateManager(boost::shared_ptr<TemplateManager> manager) { _templateManager = manager; }
       inline boost::shared_ptr<TemplateManager> getTemplateManager() { return _templateManager; }
     private:
       boost::shared_ptr<TemplateManager> _templateManager;

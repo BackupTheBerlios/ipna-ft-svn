@@ -3,34 +3,36 @@
 #include <sys/socket.h>
 
 #include <ipna/network/Socket.hpp>
-#include <ipna/fanout/FanoutPacketHandler.hpp>
+#include <ipna/capture/CapturePacketHandler.hpp>
+#include <ipna/parser/ParserFactory.hpp>
+#include <ipna/parser/PacketParser.hpp>
 #include <ipna/network/SequenceNumberChecker.hpp>
 #include <ipna/parser/cnfp.hpp>
 
 using namespace std;
 using namespace ipna;
-using namespace ipna::fanout;
+using namespace ipna::capture;
 using namespace ipna::network;
 using namespace ipna::parser;
 
-Logger::LoggerPtr FanoutPacketHandler::logger = Logger::getLogger("ipna.fanout");
+Logger::LoggerPtr CapturePacketHandler::logger = Logger::getLogger("ipna.capture");
 
-FanoutPacketHandler::FanoutPacketHandler(boost::shared_ptr<Socket> s) :
-  socket(s), sequenceChecker(new SequenceNumberChecker()) {
+CapturePacketHandler::CapturePacketHandler() :
+  sequenceChecker(new SequenceNumberChecker()) {
+  parserFactory = ParserFactory::getInstance();
 }
 
-FanoutPacketHandler::~FanoutPacketHandler() {
-  destinations.clear();
-}
-
-FanoutPacketHandler*
-FanoutPacketHandler::addDestination(DestinationPtr d) {
-  destinations.push_back(d);
-  return this;
+CapturePacketHandler::~CapturePacketHandler() {
 }
 
 bool
-FanoutPacketHandler::handlePacket(boost::shared_array<char> packet, int len, struct sockaddr_in & from) {
+CapturePacketHandler::handlePacket(boost::shared_array<char> packet, int len, struct sockaddr_in & from) {
+  ParserPtr parser = parserFactory->getParser(packet);
+
+  // parser->analyze(packet);
+  // records = parser->parse(packet);
+  // writer->write(records)
+  
   struct cnfp_v9_hdr header;
   
   // analyze a little bit
@@ -53,12 +55,5 @@ FanoutPacketHandler::handlePacket(boost::shared_array<char> packet, int len, str
 	    );
   }
 
-  // deliver packets
-  for (DestinationIterator d = destinations.begin(); d != destinations.end(); d++) {
-    int sent = socket->sendto(packet.get(), len, (struct sockaddr*)(d->get()));
-    if (sent == -1) {
-      perror("sendto");
-      return false;
-    }  
-  }
+  return true;
 }

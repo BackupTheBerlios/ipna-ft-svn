@@ -37,8 +37,6 @@ $(FANOUT_BIN) : $(FANOUT_OBJS)
 	@echo "[LD ] $^ -> $@"
 	@$(CC) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
-$(FANOUT_OBJS): $(FANOUT_SRCS)
-
 install: $(BINS)
 	cp -p $(BINS) $(PREFIX)/bin
 

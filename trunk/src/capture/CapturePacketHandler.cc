@@ -26,8 +26,8 @@ CapturePacketHandler::~CapturePacketHandler() {
 }
 
 bool
-CapturePacketHandler::handlePacket(boost::shared_array<char> packet, int len, struct sockaddr_in & from) {
-  ParserPtr parser = parserFactory->getParser(packet);
+CapturePacketHandler::handlePacket(ipna::network::Packet::PacketPtr packet) {
+  ParserPtr parser = parserFactory->getParser(packet->getBytes());
 
   // parser->analyze(packet);
   // records = parser->parse(packet);
@@ -36,7 +36,7 @@ CapturePacketHandler::handlePacket(boost::shared_array<char> packet, int len, st
   struct cnfp_v9_hdr header;
   
   // analyze a little bit
-  header = *(struct cnfp_v9_hdr*)packet.get();
+  header = *(struct cnfp_v9_hdr*)packet->getBytes();
   //  checkSequenceNumber(ntohl(header.seq));
   SequenceNumberChecker::SequenceError seq_err =
     sequenceChecker->check(ntohl(header.seq));

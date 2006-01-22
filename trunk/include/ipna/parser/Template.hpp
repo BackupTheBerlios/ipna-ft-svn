@@ -12,14 +12,22 @@ namespace ipna {
     public:
       typedef unsigned int TemplateId;
       typedef std::pair<Field::FieldId, unsigned int> FieldLengthTuple;
-      typedef std::vector<FieldLengthTuple> FieldDescription;
-      typedef FieldDescription::iterator FieldIterator;
+      typedef std::vector<FieldLengthTuple> FieldDescriptions;
+      typedef FieldDescriptions::iterator FieldIterator;
       
-      Template(TemplateId id, unsigned int refreshTime = 60*15) : _totalLength(0), _id(id), _lastUpdated(0), _refreshTime(refreshTime) {}
+      Template(TemplateId id, unsigned int refreshTime = 60*15)
+	: _totalLength(0), _id(id), _lastUpdated(0), _refreshTime(refreshTime) {}
       virtual ~Template() {}
       
-      inline FieldDescription& getFieldDescriptions() { return _fields; }
+      inline FieldDescriptions& getFieldDescriptions() { return _fields; }
       inline unsigned int getTotalLength() { return _totalLength; }
+      inline unsigned int getLength(Field::FieldId field) {
+	for (FieldIterator it = _fields.begin(); it != _fields.end(); it++) {
+	  if (it->first == field)
+	    return it->second;
+	}
+	return 0;
+      }
       inline void addField(Field::FieldId id, unsigned int length) {
 	_fields.push_back(std::make_pair<Field::FieldId,unsigned int>(id,length));
 	_totalLength += length;
@@ -29,7 +37,7 @@ namespace ipna {
       inline void updated() { _lastUpdated = time(NULL); }
       inline bool needsUpdate() { return (_lastUpdated+_refreshTime) < time(NULL); }
     private:
-      std::vector<FieldLengthTuple> _fields;
+      FieldDescriptions _fields;
       unsigned int _totalLength;
       TemplateId _id;
       time_t _lastUpdated;

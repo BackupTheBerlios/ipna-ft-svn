@@ -3,23 +3,32 @@
 
 #include <map>
 
+#include <boost/shared_ptr.hpp>
 #include <ipna/parser/Field.hpp>
 
 namespace ipna {
   namespace parser {
     class Record {
     public:
-      Record(unsigned int templateId);
+      typedef boost::shared_ptr<Record> RecordPtr;
+      
+      Record(unsigned int templateId) : _templateId(templateId) {}
       virtual ~Record() {}
       
-      Record* add(Field::FieldPtr field);
+      inline Record* add(Field::FieldPtr field) {
+	_values[field->getId()] = field;
+	return this;
+      }
       inline unsigned int getTemplateId() {
 	return _templateId;
       }
       
-      bool has(Field::FieldId id);
-      FieldPtr get(Field::FieldId id);
-      
+      inline bool has(Field::FieldId id) const {
+	return _values.find(id) != _values.end();
+      }
+      inline Field::FieldPtr get(Field::FieldId id) {
+	return _values[id];
+      }
     private:
       std::map<Field::FieldId, Field::FieldPtr> _values;
       unsigned int _templateId;    

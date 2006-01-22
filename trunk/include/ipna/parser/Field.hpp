@@ -2,9 +2,7 @@
 #define FIELD_HPP
 
 #include <boost/shared_ptr.hpp>
-#include <boost/any.hpp>
 #include <string>
-#include <vector>
 
 namespace ipna {
   namespace parser {
@@ -13,14 +11,16 @@ namespace ipna {
       typedef unsigned int FieldId;
       typedef boost::shared_ptr<Field> FieldPtr;
       
-      Field(FieldId id, char* bytes, unsigned int numBytes);
-      Field(FieldId id, std::vector<char> bytes);
+      Field(FieldId id, const char* bytes, size_t numBytes)
+	: _id(id), _bytes(bytes), _numBytes(numBytes) {}
       virtual ~Field() {}
       
-      virtual std::string str();
-      
+      virtual std::string toString() const { return "not implemented,yet"; }
+      inline size_t getId() const { return _id; }
     private:
-      boost::any value;
+      const char* _bytes;
+      size_t _numBytes;
+      FieldId _id;
     };
   }
 }

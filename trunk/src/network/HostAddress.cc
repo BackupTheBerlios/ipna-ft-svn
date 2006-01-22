@@ -15,10 +15,10 @@ HostAddress::HostAddress()
 HostAddress::HostAddress(u_int32_t ipv4Addr)
   : _type(IPv4), _ipv4Addr(ipv4Addr) {}
 
-HostAddress::HostAddress(const sockaddr_in* _sockaddr) {
-  if (_sockaddr && _sockaddr->sin_family == AF_INET) {
+HostAddress::HostAddress(const sockaddr_in& _sockaddr) {
+  if (_sockaddr.sin_family == AF_INET) {
     _type = IPv4;
-    _ipv4Addr = ntohl(_sockaddr->sin_addr.s_addr);
+    _ipv4Addr = _sockaddr.sin_addr.s_addr;
   } else {
     _type = IPv4;
     _ipv4Addr = 0;
@@ -122,4 +122,10 @@ bool
 HostAddress::operator==(HostAddress::SpecialAddress other) const {
   HostAddress tmp(other);
   return (*this) == tmp;
+}
+
+ostream&
+ipna::network::operator<<(ostream& out, const HostAddress& addr) {
+  out << addr.toString();
+  return out;
 }

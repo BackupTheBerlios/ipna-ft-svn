@@ -3,8 +3,8 @@
 
 #include <vector>
 #include <boost/shared_ptr.hpp>
-#include <boost/shared_array.hpp>
 #include <ipna/Logger.hpp>
+#include <ipna/network/Packet.hpp>
 
 namespace ipna {
   namespace network {
@@ -23,7 +23,7 @@ namespace ipna {
     private:
       boost::shared_ptr<Socket> socket;
       std::vector<HandlerPtr> handler;
-      boost::shared_array<char> packet;
+      Packet::PacketData packetData;
       unsigned int maxpacketlen;
       static Logger::LoggerPtr logger;
     };

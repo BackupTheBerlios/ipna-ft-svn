@@ -3,14 +3,14 @@ CXXFLAGS=-O3 -g -I../include
 
 PREFIX=/home/ipna
 
-SRCS=network/Socket.cc network/Listener.cc network/SequenceNumberChecker.cc network/HostAddress.cc Logger.cc
+SRCS=network/Socket.cc network/Listener.cc network/SequenceNumberChecker.cc network/Packet.cc network/HostAddress.cc Logger.cc
 HDRS=$(wildcard *.hpp)
 
 FANOUT_SRCS=fanout/main.cc fanout/FanoutPacketHandler.cc $(SRCS)
 FANOUT_OBJS=$(FANOUT_SRCS:.cc=.o)
 FANOUT_BIN=ipna-ft-fanout
 
-PARSER_SRCS=parser/ParserFactory.cc
+PARSER_SRCS=parser/ParserFactory.cc parser/CNFPv9PacketParser.cc
 
 CAPTURE_SRCS=capture/main.cc capture/CapturePacketHandler.cc $(PARSER_SRCS) $(SRCS)
 CAPTURE_OBJS=$(CAPTURE_SRCS:.cc=.o)

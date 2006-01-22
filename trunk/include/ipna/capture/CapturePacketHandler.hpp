@@ -5,6 +5,7 @@
 #include <vector>
 
 #include <ipna/network/PacketHandler.hpp>
+#include <ipna/network/Packet.hpp>
 #include <ipna/Logger.hpp>
 
 namespace ipna {
@@ -23,7 +24,7 @@ namespace ipna {
     public:
       CapturePacketHandler();
       virtual ~CapturePacketHandler();
-      virtual bool handlePacket(Packet packet, int len, struct sockaddr_in & from);
+      virtual bool handlePacket(ipna::network::Packet::PacketPtr packet);
     private:
       static ipna::Logger::LoggerPtr logger;
       boost::shared_ptr<ipna::network::SequenceNumberChecker> sequenceChecker;

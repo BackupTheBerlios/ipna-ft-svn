@@ -24,7 +24,7 @@ Logger::LoggerPtr Listener::logger = Logger::getLogger("ipna.ft.listener");
 
 Listener::Listener(boost::shared_ptr<Socket> s, unsigned int maxpacketlen)
   : socket(s), maxpacketlen(maxpacketlen) {
-  packet = boost::shared_array<char>(new char[maxpacketlen]);
+  packetData = Packet::PacketData(new char[maxpacketlen]);
 }
 
 Listener::~Listener() {
@@ -41,8 +41,8 @@ Listener::start() {
   for (;;) {
     struct sockaddr_in from;
     size_t fromlen = sizeof(struct sockaddr);
-    memset(packet.get(), 0, maxpacketlen);
-    int received = socket->recvfrom(packet.get(), maxpacketlen, (struct sockaddr*)&from, &fromlen);
+    memset(packetData.get(), 0, maxpacketlen);
+    int received = socket->recvfrom(packetData.get(), maxpacketlen, (struct sockaddr*)&from, &fromlen);
     if (received < 0) {
       // could not receive packet, so return
       perror("recvfrom");
@@ -51,9 +51,12 @@ Listener::start() {
       struct timeval tstart, tfinish;
       double tsecs;
 
+      HostAddress fromAddress(from);
+      Packet::PacketPtr packet(new Packet(packetData, received, fromAddress));
+
       gettimeofday(&tstart, NULL);
       for (HandlerIterator h = handler.begin(); h != handler.end(); h++) {
-	if (!h->get()->handlePacket(packet, received, from)) {
+	if (!h->get()->handlePacket(packet)) {
 	  // could not handle packet, so return
 	  LOG_WARN("could not handle packet!");
 	  return;

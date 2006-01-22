@@ -1,5 +1,6 @@
 #include <ipna/parser/ParserFactory.hpp>
 #include <ipna/parser/PacketParser.hpp>
+#include <ipna/parser/CNFPv9PacketParser.hpp>
 #include <utility>
 
 using namespace ipna;
@@ -53,7 +54,7 @@ ParserFactory::newParser(NetflowVersion version) const {
   case CNFPv7:
   case CNFPv8:
   case CNFPv9:
-    // p = boost::shared_ptr<PacketParser>(new CNFPv9PacketParser());
+    p = boost::shared_ptr<PacketParser>(new CNFPv9PacketParser());
   default:
     break;
   }

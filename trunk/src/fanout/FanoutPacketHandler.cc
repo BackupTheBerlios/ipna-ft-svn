@@ -30,11 +30,11 @@ FanoutPacketHandler::addDestination(DestinationPtr d) {
 }
 
 bool
-FanoutPacketHandler::handlePacket(boost::shared_array<char> packet, int len, struct sockaddr_in & from) {
+FanoutPacketHandler::handlePacket(Packet::PacketPtr packet) {
   struct cnfp_v9_hdr header;
   
   // analyze a little bit
-  header = *(struct cnfp_v9_hdr*)packet.get();
+  header = *(struct cnfp_v9_hdr*)packet->getBytes();
   //  checkSequenceNumber(ntohl(header.seq));
   SequenceNumberChecker::SequenceError seq_err =
     sequenceChecker->check(ntohl(header.seq));
@@ -55,7 +55,7 @@ FanoutPacketHandler::handlePacket(boost::shared_array<char> packet, int len, str
 
   // deliver packets
   for (DestinationIterator d = destinations.begin(); d != destinations.end(); d++) {
-    int sent = socket->sendto(packet.get(), len, (struct sockaddr*)(d->get()));
+    int sent = socket->sendto(packet->getBytes(), packet->getLength(), (struct sockaddr*)(d->get()));
     if (sent == -1) {
       perror("sendto");
       return false;

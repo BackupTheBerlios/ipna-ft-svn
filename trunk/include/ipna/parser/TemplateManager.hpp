@@ -11,11 +11,16 @@ namespace ipna {
     
     class TemplateManager {
     public:
-      TemplateManager();
-      virtual ~TemplateManager();
+      TemplateManager() {}
+      virtual ~TemplateManager() {}
       
-      void put(Template::TemplateId id, shared_ptr<Template> t);
-      shared_ptr<Template> get(Template::TemplateId id);
+      void put(Template::TemplateId id, shared_ptr<Template> t) {
+	_templates[id] = t;
+      }
+      
+      shared_ptr<Template> get(Template::TemplateId id) {
+	return _templates[id];
+      }
     private:
       std::map<Template::TemplateId, shared_ptr<Template> > _templates;
     };

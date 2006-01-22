@@ -3,7 +3,7 @@
 
 AC_PREREQ(2.59)
 AC_INIT(FULL-PACKAGE-NAME, VERSION, BUG-REPORT-ADDRESS)
-AC_CONFIG_SRCDIR([src/ipna-ft-fanout.cc])
+AC_CONFIG_SRCDIR([src/])
 AC_CONFIG_HEADER([config.h])
 
 # Checks for programs.

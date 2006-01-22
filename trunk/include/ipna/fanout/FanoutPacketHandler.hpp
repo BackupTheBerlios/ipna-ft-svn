@@ -1,10 +1,10 @@
 #ifndef FANOUT_PACKET_HANDLER_H
 #define FANOUT_PACKET_HANDLER_H
 
-#include <boost/shared_ptr.hpp>
 #include <vector>
 
 #include <ipna/network/PacketHandler.hpp>
+#include <ipna/network/Packet.hpp>
 #include <ipna/Logger.hpp>
 
 namespace ipna {
@@ -21,7 +21,7 @@ namespace ipna {
       
       FanoutPacketHandler(boost::shared_ptr<ipna::network::Socket> s);
       virtual ~FanoutPacketHandler();
-      virtual bool handlePacket(Packet packet, int len, struct sockaddr_in & from);
+      virtual bool handlePacket(network::Packet::PacketPtr packet);
       virtual FanoutPacketHandler* addDestination(DestinationPtr d);
     private:
       static ipna::Logger::LoggerPtr logger;

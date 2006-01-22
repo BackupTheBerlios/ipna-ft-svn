@@ -5,21 +5,21 @@
 #include <vector>
 
 #include <ipna/network/PacketHandler.hpp>
+#include <ipna/network/Packet.hpp>
+#include <ipna/parser/Record.hpp>
+#include <ipna/parser/TemplateManager.hpp>
 
 namespace ipna {
   namespace parser {
-    class TemplateManager;
-    class Record;
-    class Packet;
-    
     class PacketParser {
     public:
       typedef boost::shared_ptr<PacketParser> ParserPtr;
+      typedef boost::shared_ptr<std::vector<Record::RecordPtr> > RecordVector;
       
-      PacketParser() {}
+      PacketParser() : _templateManager(new TemplateManager) {}
       virtual ~PacketParser() { }
       
-      virtual boost::shared_ptr<std::vector<boost::shared_ptr<Record> > > parse(Packet packet, int len) const = 0;
+      virtual RecordVector parse(network::Packet::PacketPtr packet) = 0;
     protected:
       inline void setTemplateManager(boost::shared_ptr<TemplateManager> manager) { _templateManager = manager; }
       inline boost::shared_ptr<TemplateManager> getTemplateManager() { return _templateManager; }

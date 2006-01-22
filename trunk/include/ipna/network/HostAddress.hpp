@@ -2,6 +2,7 @@
 #define HOST_ADDRESS_HPP
 
 #include <string>
+#include <ostream>
 #include <sys/socket.h>
 #include <netinet/in.h>
 
@@ -15,7 +16,7 @@ namespace ipna {
       
       HostAddress();
       HostAddress(u_int32_t ipv4Addr);
-      HostAddress(const sockaddr_in * sockaddr);
+      HostAddress(const sockaddr_in& sockaddr);
       HostAddress(const std::string& addr);
       HostAddress(const HostAddress& haddr);
       HostAddress(const in6_addr& addr);
@@ -39,6 +40,8 @@ namespace ipna {
       u_int32_t _ipv4Addr;
       in6_addr _ipv6Addr;
     };
+
+    std::ostream& operator<<(std::ostream& out, const HostAddress& a);
   }
 }
 

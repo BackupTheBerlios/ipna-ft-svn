@@ -1,3 +1,4 @@
+#include <iostream>
 #include <ipna/parser/ParserFactory.hpp>
 #include <ipna/parser/PacketParser.hpp>
 #include <ipna/parser/CNFPv9PacketParser.hpp>
@@ -18,7 +19,7 @@ ParserFactory::getParser(NetflowVersion version) {
     return it->second;
   } else {
     ParserPtr p = newParser(version);
-    _parserMap.insert(std::make_pair<NetflowVersion,ParserPtr>(version,p));
+    _parserMap[version] = p;
     return p;
   }
 }
@@ -36,7 +37,7 @@ ParserFactory::getParser(const char * packet) {
 
 ParserPtr
 ParserFactory::getParser(const cnfp_common_hdr& hdr) {
-  return getParser(hdr.version);
+  return getParser(ntohs(hdr.version));
 }
 
 ParserPtr
@@ -54,6 +55,7 @@ ParserFactory::newParser(NetflowVersion version) const {
   case CNFPv7:
   case CNFPv8:
   case CNFPv9:
+    //    std::cerr << "returning new v9 parser" << std::endl;
     p = boost::shared_ptr<PacketParser>(new CNFPv9PacketParser());
   default:
     break;

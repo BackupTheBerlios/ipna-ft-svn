@@ -18,8 +18,7 @@ using namespace ipna::parser;
 Logger::LoggerPtr CapturePacketHandler::logger = Logger::getLogger("ipna.capture");
 
 CapturePacketHandler::CapturePacketHandler() :
-  sequenceChecker(new SequenceNumberChecker()) {
-  parserFactory = ParserFactory::getInstance();
+  sequenceChecker(new SequenceNumberChecker()), parserFactory(ParserFactory::getInstance()) {
 }
 
 CapturePacketHandler::~CapturePacketHandler() {
@@ -32,7 +31,11 @@ CapturePacketHandler::handlePacket(ipna::network::Packet::PacketPtr packet) {
   // parser->analyze(packet);
   // records = parser->parse(packet);
   // writer->write(records)
-  
+  PacketParser::RecordVectorPtr records = parser->parse(packet);
+  for (PacketParser::RecordVector::iterator it = records->begin(); it != records->end(); it++) {
+    
+  }
+
   struct cnfp_v9_hdr header;
   
   // analyze a little bit

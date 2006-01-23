@@ -7,8 +7,9 @@ using namespace ipna::parser;
 
 CNFPv9PacketParser::CNFPv9PacketParser() : PacketParser() {}
 
-PacketParser::RecordVector
+PacketParser::RecordVectorPtr
 CNFPv9PacketParser::parse(Packet::PacketPtr packet) {
-  return PacketParser::RecordVector(new std::vector<Record::RecordPtr>);
+  PacketParser::RecordVectorPtr records(new PacketParser::RecordVector);
+  return records;
 }
   

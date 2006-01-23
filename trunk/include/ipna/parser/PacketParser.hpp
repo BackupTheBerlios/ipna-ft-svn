@@ -14,12 +14,13 @@ namespace ipna {
     class PacketParser {
     public:
       typedef boost::shared_ptr<PacketParser> ParserPtr;
-      typedef boost::shared_ptr<std::vector<Record::RecordPtr> > RecordVector;
+      typedef std::vector<Record::RecordPtr> RecordVector;
+      typedef boost::shared_ptr<std::vector<Record::RecordPtr> > RecordVectorPtr;
       
       PacketParser() : _templateManager(new TemplateManager) {}
       virtual ~PacketParser() { }
       
-      virtual RecordVector parse(network::Packet::PacketPtr packet) = 0;
+      virtual RecordVectorPtr parse(network::Packet::PacketPtr packet) = 0;
     protected:
       inline void setTemplateManager(boost::shared_ptr<TemplateManager> manager) { _templateManager = manager; }
       inline boost::shared_ptr<TemplateManager> getTemplateManager() { return _templateManager; }

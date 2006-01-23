@@ -20,6 +20,7 @@ namespace ipna {
       virtual ~Socket();
       
       ssize_t bind(std::string hostorip = "*", int port = 0);
+      //      ssize_t bind(const HostAddress& addr = "*", unsigned short port = 0);
       
       ssize_t recv(void* buffer, size_t len, int flags = 0);
       ssize_t send(const void* buffer, size_t len, int flags = 0);

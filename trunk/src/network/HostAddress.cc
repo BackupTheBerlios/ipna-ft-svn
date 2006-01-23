@@ -26,8 +26,11 @@ HostAddress::HostAddress(const sockaddr_in& _sockaddr) {
 }
 
 HostAddress::HostAddress(const std::string& addr) {
-  // check if addr contains a '.'
-  if (addr.find(".") < addr.size()) {
+  if (addr == "*") {
+    _type = IPv4;
+    _ipv4Addr = htonl(INADDR_ANY);
+  } else if (addr.find(".") < addr.size()) {
+    // check if addr contains a '.'
     in_addr a;
     if (inet_aton(addr.c_str(), &a)) {
       _type = IPv4;

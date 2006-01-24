@@ -8,6 +8,7 @@
 #include <ipna/network/Packet.hpp>
 
 #include <ipna/parser/PacketParser.hpp>
+#include <ipna/Logger.hpp>
 
 namespace ipna {
   namespace parser {
@@ -18,7 +19,7 @@ namespace ipna {
       
       virtual PacketParser::RecordVectorPtr parse(network::Packet::PacketPtr packet);
     private:
-      
+      static ipna::Logger::LoggerPtr logger;
     };
   }
 }

@@ -63,6 +63,16 @@ namespace ipna {
       unsigned int seq;
       int engine_id;
     };
+
+    typedef struct cnfp_v9_hdr cnfp_v9_hdr_s;
+    typedef cnfp_v9_hdr_s* cnfp_v9_hdr_t;
+
+    struct cnfp_v9_flowset_hdr {
+      unsigned short flowset_id;
+      unsigned short length;
+    };
+    typedef struct cnfp_v9_flowset_hdr cnfp_v9_flowset_hdr_s;
+    typedef cnfp_v9_flowset_hdr_s* cnfp_v9_flowset_hdr_t;
   }
 }
 

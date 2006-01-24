@@ -14,12 +14,16 @@ namespace ipna {
       TemplateManager() {}
       virtual ~TemplateManager() {}
       
-      void put(Template::TemplateId id, shared_ptr<Template> t) {
-	_templates[id] = t;
+      void put(Template::TemplatePtr t) {
+	_templates[t->getId()] = t;
       }
       
       shared_ptr<Template> get(Template::TemplateId id) {
 	return _templates[id];
+      }
+
+      bool isKnown(Template::TemplateId id) {
+	return _templates.find(id) != _templates.end();
       }
     private:
       std::map<Template::TemplateId, shared_ptr<Template> > _templates;

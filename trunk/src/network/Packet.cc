@@ -17,3 +17,17 @@ Packet::getBytes(int startPosition) const {
     return NULL;
   }
 }
+
+unsigned short
+Packet::getNextShort() {
+  unsigned short s = ntohs(*(unsigned short*)getCurrentBytes());
+  _currentPosition += sizeof(unsigned short);
+  return s;
+}
+
+unsigned int
+Packet::getNextInt() {
+  unsigned int i = ntohl(*(unsigned int*)getCurrentBytes());
+  _currentPosition += sizeof(unsigned int);
+  return i;
+}  

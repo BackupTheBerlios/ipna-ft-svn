@@ -47,16 +47,5 @@ CapturePacketHandler::handlePacket(ipna::network::Packet::PacketPtr packet) {
     LOG_WARN("missed " << (int)(sequenceChecker->missed()) << " packet(s)");
   }
 
-  if (logger->isDebugEnabled()) {
-    fprintf(stdout, "version:%d count:%u uptime:%u tstamp:%u seq:%u source:%d\n",
-	    ntohs(header.common.version),
-	    ntohs(header.common.count),
-	    ntohl(header.uptime),
-	    ntohl(header.tstamp),
-	    ntohl(header.seq),
-	    ntohl(header.engine_id)
-	    );
-  }
-
   return true;
 }

@@ -11,7 +11,7 @@ namespace ipna {
   class Logger {
   public:
 
-#define LOG_MSG(prio,msg) { stringstream s; s << msg; logger->log(prio,s.str()); }
+#define LOG_MSG(prio,msg) { std::stringstream s; s << msg; logger->log(prio,s.str()); }
 #define LOG_DEBUG(msg) LOG_MSG(::ipna::Logger::DEBUG, msg)
 #define LOG_FATAL(msg) LOG_MSG(::ipna::Logger::FATAL, msg)
 #define LOG_INFO(msg) LOG_MSG(::ipna::Logger::INFO, msg)

@@ -29,6 +29,7 @@ namespace ipna {
 	return getBytes(getCurrentPosition());
       }
       inline size_t getCurrentPosition() const { return _currentPosition; }
+      PacketData extractBytes(size_t startPosition, size_t length) const;
       
       unsigned short getNextShort();
       unsigned int getNextInt();

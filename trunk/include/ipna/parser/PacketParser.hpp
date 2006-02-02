@@ -20,7 +20,7 @@ namespace ipna {
       PacketParser() : _templateManager(new TemplateManager) {}
       virtual ~PacketParser() { }
       
-      virtual RecordVectorPtr parse(network::Packet::PacketPtr packet) = 0;
+      virtual size_t parse(network::Packet::PacketPtr packet, RecordVectorPtr records) = 0;
     protected:
       inline void setTemplateManager(boost::shared_ptr<TemplateManager> manager) { _templateManager = manager; }
       inline boost::shared_ptr<TemplateManager> getTemplateManager() { return _templateManager; }

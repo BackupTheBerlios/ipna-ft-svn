@@ -17,7 +17,7 @@ namespace ipna {
       CNFPv9PacketParser();
       virtual ~CNFPv9PacketParser() { }
       
-      virtual PacketParser::RecordVectorPtr parse(network::Packet::PacketPtr packet);
+      virtual size_t parse(network::Packet::PacketPtr packet, PacketParser::RecordVectorPtr records);
     private:
       static ipna::Logger::LoggerPtr logger;
     };

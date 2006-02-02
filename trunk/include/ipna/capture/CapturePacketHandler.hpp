@@ -7,6 +7,7 @@
 #include <ipna/network/PacketHandler.hpp>
 #include <ipna/network/Packet.hpp>
 #include <ipna/Logger.hpp>
+#include <ipna/parser/PacketParser.hpp>
 
 namespace ipna {
 
@@ -29,6 +30,7 @@ namespace ipna {
       static ipna::Logger::LoggerPtr logger;
       boost::shared_ptr<ipna::network::SequenceNumberChecker> sequenceChecker;
       boost::shared_ptr<ipna::parser::ParserFactory> parserFactory;
+      ipna::parser::PacketParser::RecordVectorPtr records;
     };
   }
 }

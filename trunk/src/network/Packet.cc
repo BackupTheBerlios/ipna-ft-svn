@@ -18,6 +18,19 @@ Packet::getBytes(int startPosition) const {
   }
 }
 
+Packet::PacketData
+Packet::extractBytes(size_t startPosition, size_t length) const {
+  if (0 == length || (startPosition + length) > _length) {
+    return Packet::PacketData(NULL);
+  } else {
+    char* foo = new char[length];
+    if (foo != NULL)
+      memcpy(foo, getBytes(startPosition), length);
+    Packet::PacketData pd(foo);
+    return pd;
+  }
+}
+
 unsigned short
 Packet::getNextShort() {
   unsigned short s = ntohs(*(unsigned short*)getCurrentBytes());

@@ -10,16 +10,17 @@ FANOUT_SRCS=fanout/main.cc fanout/FanoutPacketHandler.cc $(SRCS)
 FANOUT_OBJS=$(FANOUT_SRCS:.cc=.o)
 FANOUT_BIN=ipna-ft-fanout
 
-PARSER_SRCS=parser/ParserFactory.cc parser/CNFPv9PacketParser.cc
+PARSER_SRCS=parser/ParserFactory.cc parser/CNFPv9PacketParser.cc parser/Field.cc
+PARSER_OBJS=$(PARSER_SRCS:.cc=.o)
 
 CAPTURE_SRCS=capture/main.cc capture/CapturePacketHandler.cc $(PARSER_SRCS) $(SRCS)
 CAPTURE_OBJS=$(CAPTURE_SRCS:.cc=.o)
 CAPTURE_BIN=ipna-ft-capture
 
 BINS=$(FANOUT_BIN) $(CAPTURE_BIN)
-OBJS=$(FANOUT_OBJS) $(CAPTURE_OBJ)
+OBJS=$(FANOUT_OBJS) $(CAPTURE_OBJ) $(PARSER_OBJS)
 
-.PHONY: default all fanout capture clean install
+.PHONY: default all fanout capture clean install test
 
 %.o : %.c
 	@echo "[CC ] $<"
@@ -54,3 +55,7 @@ install: $(BINS)
 clean:
 	-rm $(OBJS) 2>/dev/null
 	-rm $(BINS) 2>/dev/null
+
+test:
+	./ipna-ft-capture -v -l */5100
+

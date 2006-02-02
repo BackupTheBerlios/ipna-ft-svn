@@ -27,12 +27,12 @@ namespace ipna {
       inline TemplateId getId() const { return _id; }
       inline FieldDescriptions& getFieldDescriptions() { return _fields; }
       inline unsigned int getTotalLength() { return _totalLength; }
-      inline unsigned int getLength(Field::FieldId field) {
-	for (FieldIterator it = _fields.begin(); it != _fields.end(); it++) {
-	  if (it->first == field)
-	    return it->second;
-	}
-	return 0;
+      inline unsigned int getNumFields() const { return _fields.size(); }
+      inline unsigned int getFieldId(unsigned int idx) {
+	return _fields[idx].first;
+      }
+      inline unsigned int getFieldLength(unsigned int idx) {
+	return _fields[idx].second;
       }
       inline void addField(Field::FieldId id, unsigned int length) {
 	_fields.push_back(std::make_pair<Field::FieldId,unsigned int>(id,length));

@@ -19,6 +19,7 @@ Logger::LoggerPtr CapturePacketHandler::logger = Logger::getLogger("ipna.capture
 
 CapturePacketHandler::CapturePacketHandler() :
   sequenceChecker(new SequenceNumberChecker()), parserFactory(ParserFactory::getInstance()) {
+  records = PacketParser::RecordVectorPtr(new PacketParser::RecordVector());
 }
 
 CapturePacketHandler::~CapturePacketHandler() {
@@ -31,11 +32,21 @@ CapturePacketHandler::handlePacket(ipna::network::Packet::PacketPtr packet) {
   // parser->analyze(packet);
   // records = parser->parse(packet);
   // writer->write(records)
-  PacketParser::RecordVectorPtr records = parser->parse(packet);
+  size_t numNewRecords = parser->parse(packet, records);
   for (PacketParser::RecordVector::iterator it = records->begin(); it != records->end(); it++) {
-    
+    cout << (*it)->get(10)->asUInt() << '\t';
+    cout << (*it)->get(8)->asIp()    << '\t';
+    cout << (*it)->get(14)->asUInt() << '\t';
+    cout << (*it)->get(12)->asIp()   << '\t';
+    cout << (*it)->get(4)->asUInt()  << '\t';
+    cout << (*it)->get(7)->asUInt()  << '\t';
+    cout << (*it)->get(11)->asUInt() << '\t';
+    cout << (*it)->get(2)->asUInt()  << '\t';
+    cout << (*it)->get(1)->asUInt()  << '\t';
+    cout << endl;
   }
-
+  records->clear();
+  
   struct cnfp_v9_hdr header;
   
   // analyze a little bit

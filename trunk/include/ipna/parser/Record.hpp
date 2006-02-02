@@ -13,7 +13,9 @@ namespace ipna {
       typedef boost::shared_ptr<Record> RecordPtr;
       
       Record(unsigned int templateId) : _templateId(templateId) {}
-      virtual ~Record() {}
+      virtual ~Record() {
+	_values.clear();
+      }
       
       inline Record* add(Field::FieldPtr field) {
 	_values[field->getId()] = field;

@@ -18,7 +18,7 @@ namespace ipna {
 	_templates[t->getId()] = t;
       }
       
-      shared_ptr<Template> get(Template::TemplateId id) {
+      Template::TemplatePtr get(Template::TemplateId id) {
 	return _templates[id];
       }
 
@@ -26,7 +26,7 @@ namespace ipna {
 	return _templates.find(id) != _templates.end();
       }
     private:
-      std::map<Template::TemplateId, shared_ptr<Template> > _templates;
+      std::map<Template::TemplateId, Template::TemplatePtr> _templates;
     };
   }
 }

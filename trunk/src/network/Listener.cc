@@ -65,7 +65,11 @@ Listener::start() {
       gettimeofday(&tfinish, NULL);
       tsecs = (tfinish.tv_sec - tstart.tv_sec) +
 	1e-6 * (tfinish.tv_usec - tstart.tv_usec);
-      LOG_DEBUG("processing took " << tsecs << "s");
+      if (tsecs > 0.4) {
+	LOG_WARN("processing took " << tsecs << "s");
+      } else {
+	LOG_DEBUG("processing took " << tsecs << "s");
+      }	
     }
   }
 }

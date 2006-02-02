@@ -42,7 +42,7 @@ CapturePacketHandler::handlePacket(ipna::network::Packet::PacketPtr packet) {
     cout << (*it)->get(7)->asUInt()  << '\t';
     cout << (*it)->get(11)->asUInt() << '\t';
     cout << (*it)->get(2)->asUInt()  << '\t';
-    cout << (*it)->get(1)->asUInt()  << '\t';
+    cout << (*it)->get(1)->asUInt();
     cout << endl;
   }
   records->clear();

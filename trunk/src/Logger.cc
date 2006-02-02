@@ -15,7 +15,7 @@ char* Logger::priorityNameMap[] = { "FATAL", "ERROR", "WARN", "INFO", "DEBUG", "
 
 Logger::Logger(const string& name, Logger::PriorityLevel l)
   : name(name), level(l){
-  stream = &cerr;
+  stream = &clog;
 }
 
 Logger::~Logger() {}

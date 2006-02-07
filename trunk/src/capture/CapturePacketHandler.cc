@@ -17,8 +17,11 @@ using namespace ipna::parser;
 
 Logger::LoggerPtr CapturePacketHandler::logger = Logger::getLogger("ipna.capture");
 
-CapturePacketHandler::CapturePacketHandler() :
-  sequenceChecker(new SequenceNumberChecker()), parserFactory(ParserFactory::getInstance()) {
+CapturePacketHandler::CapturePacketHandler(RecordWriter::RecordWriterPtr writer) :
+  sequenceChecker(new SequenceNumberChecker()),
+  parserFactory(ParserFactory::getInstance()),
+  _recordWriter(writer)
+{
   records = PacketParser::RecordVectorPtr(new PacketParser::RecordVector());
 }
 
@@ -33,18 +36,7 @@ CapturePacketHandler::handlePacket(ipna::network::Packet::PacketPtr packet) {
   // records = parser->parse(packet);
   // writer->write(records)
   size_t numNewRecords = parser->parse(packet, records);
-  for (PacketParser::RecordVector::iterator it = records->begin(); it != records->end(); it++) {
-    cout << (*it)->get(10)->asUInt() << '\t';
-    cout << (*it)->get(8)->asIp()    << '\t';
-    cout << (*it)->get(14)->asUInt() << '\t';
-    cout << (*it)->get(12)->asIp()   << '\t';
-    cout << (*it)->get(4)->asUInt()  << '\t';
-    cout << (*it)->get(7)->asUInt()  << '\t';
-    cout << (*it)->get(11)->asUInt() << '\t';
-    cout << (*it)->get(2)->asUInt()  << '\t';
-    cout << (*it)->get(1)->asUInt();
-    cout << endl;
-  }
+  _recordWriter->write(records);
   records->clear();
   
   struct cnfp_v9_hdr header;

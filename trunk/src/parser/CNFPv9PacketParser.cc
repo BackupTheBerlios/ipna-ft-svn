@@ -81,7 +81,7 @@ CNFPv9PacketParser::parse(Packet::PacketPtr packet, PacketParser::RecordVectorPt
 	  recordsRemaining--;
 	  LOG_DEBUG("a new record of size:" << templ->getTotalLength() << " begins, remaining records:" << recordsRemaining);
 
-	  Record::RecordPtr r(new Record(fsid));
+	  Record::RecordPtr r(new Record(fsid, ntohl(header.tstamp)));
 	  for (unsigned int fieldIdx = 0; fieldIdx < templ->getNumFields(); ++fieldIdx) {
 	    unsigned int fId = templ->getFieldId(fieldIdx);
 	    unsigned int fLen= templ->getFieldLength(fieldIdx);

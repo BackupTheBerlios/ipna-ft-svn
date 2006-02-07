@@ -13,7 +13,7 @@ FANOUT_BIN=ipna-ft-fanout
 PARSER_SRCS=parser/ParserFactory.cc parser/CNFPv9PacketParser.cc parser/Field.cc
 PARSER_OBJS=$(PARSER_SRCS:.cc=.o)
 
-CAPTURE_SRCS=capture/main.cc capture/CapturePacketHandler.cc $(PARSER_SRCS) $(SRCS)
+CAPTURE_SRCS=capture/main.cc capture/CapturePacketHandler.cc capture/RecordWriter.cc $(PARSER_SRCS) $(SRCS)
 CAPTURE_OBJS=$(CAPTURE_SRCS:.cc=.o)
 CAPTURE_BIN=ipna-ft-capture
 

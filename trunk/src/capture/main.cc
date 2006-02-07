@@ -20,6 +20,7 @@
 #include <ipna/network/Socket.hpp>
 #include <ipna/network/Listener.hpp>
 #include <ipna/network/PacketHandler.hpp>
+#include <ipna/capture/RecordWriter.hpp>
 #include <ipna/capture/CapturePacketHandler.hpp>
 #include <ipna/Logger.hpp>
 
@@ -180,7 +181,8 @@ int main(int argc, char** argv) {
   }
 
   boost::shared_ptr<network::Listener> listener(new network::Listener(listenSocket));
-  boost::shared_ptr<capture::CapturePacketHandler> handler(new capture::CapturePacketHandler);
+  boost::shared_ptr<capture::RecordWriter> recordWriter(new capture::RecordWriter(std::cout));
+  boost::shared_ptr<capture::CapturePacketHandler> handler(new capture::CapturePacketHandler(recordWriter));
   listener->addHandler(handler);
 
   listener->start();

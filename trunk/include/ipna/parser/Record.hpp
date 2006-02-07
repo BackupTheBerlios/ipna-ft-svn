@@ -2,6 +2,7 @@
 #define RECORD_HPP
 
 #include <map>
+#include <time.h>
 
 #include <boost/shared_ptr.hpp>
 #include <ipna/parser/Field.hpp>
@@ -12,7 +13,7 @@ namespace ipna {
     public:
       typedef boost::shared_ptr<Record> RecordPtr;
       
-      Record(unsigned int templateId) : _templateId(templateId) {}
+      Record(unsigned int templateId, time_t tstamp) : _templateId(templateId), _tstamp(tstamp) {}
       virtual ~Record() {
 	_values.clear();
       }
@@ -31,9 +32,13 @@ namespace ipna {
       inline Field::FieldPtr get(Field::FieldId id) {
 	return _values[id];
       }
+      inline time_t tstamp() const {
+	return _tstamp;
+      }
     private:
       std::map<Field::FieldId, Field::FieldPtr> _values;
-      unsigned int _templateId;    
+      unsigned int _templateId;
+      time_t _tstamp;
     };
   }
 }

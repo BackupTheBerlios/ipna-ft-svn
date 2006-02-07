@@ -4,6 +4,7 @@
 #include <boost/shared_ptr.hpp>
 #include <vector>
 
+#include <ipna/capture/RecordWriter.hpp>
 #include <ipna/network/PacketHandler.hpp>
 #include <ipna/network/Packet.hpp>
 #include <ipna/Logger.hpp>
@@ -23,7 +24,7 @@ namespace ipna {
   namespace capture {
     class CapturePacketHandler : public ipna::network::PacketHandler {
     public:
-      CapturePacketHandler();
+      CapturePacketHandler(RecordWriter::RecordWriterPtr writer);
       virtual ~CapturePacketHandler();
       virtual bool handlePacket(ipna::network::Packet::PacketPtr packet);
     private:
@@ -31,6 +32,7 @@ namespace ipna {
       boost::shared_ptr<ipna::network::SequenceNumberChecker> sequenceChecker;
       boost::shared_ptr<ipna::parser::ParserFactory> parserFactory;
       ipna::parser::PacketParser::RecordVectorPtr records;
+      boost::shared_ptr<RecordWriter> _recordWriter;
     };
   }
 }

@@ -3,31 +3,32 @@
 
 #include <vector>
 
+#include <ipna/network/HostPort.hpp>
 #include <ipna/network/PacketHandler.hpp>
 #include <ipna/network/Packet.hpp>
+#include <ipna/network/HostPort.hpp>
 #include <ipna/Logger.hpp>
+
+#include <QUdpSocket>
+#include <QHostAddress>
 
 namespace ipna {
   namespace network {
-    class Socket;
     class SequenceNumberChecker;
   }
   
   namespace fanout {
     class FanoutPacketHandler : public ipna::network::PacketHandler {
     public:
-      typedef boost::shared_ptr<struct sockaddr_in> DestinationPtr;
-      typedef std::vector<DestinationPtr>::iterator DestinationIterator;
-      
-      FanoutPacketHandler(boost::shared_ptr<ipna::network::Socket> s);
+      FanoutPacketHandler(boost::shared_ptr<QUdpSocket> s);
       virtual ~FanoutPacketHandler();
       virtual bool handlePacket(network::Packet::PacketPtr packet);
-      virtual FanoutPacketHandler* addDestination(DestinationPtr d);
+      virtual FanoutPacketHandler* addDestination(const network::HostPort& hp);
     private:
       static ipna::Logger::LoggerPtr logger;
-      boost::shared_ptr<ipna::network::Socket> socket;
+      boost::shared_ptr<QUdpSocket> socket;
       boost::shared_ptr<ipna::network::SequenceNumberChecker> sequenceChecker;
-      std::vector<DestinationPtr> destinations;
+      std::vector<network::HostPort> destinations;
     };
   }
 }

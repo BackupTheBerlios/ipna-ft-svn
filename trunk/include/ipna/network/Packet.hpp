@@ -4,7 +4,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/shared_array.hpp>
 
-#include <ipna/network/HostAddress.hpp>
+#include <QHostAddress>
 
 namespace ipna {
   namespace network {
@@ -14,7 +14,7 @@ namespace ipna {
       typedef boost::shared_array<char> PacketData;
       typedef boost::shared_ptr<Packet> PacketPtr;
       
-      Packet(PacketData pd, size_t dataLen, const HostAddress& from);
+      Packet(PacketData pd, size_t dataLen, const QHostAddress& from);
       virtual ~Packet();
 
       inline size_t getLength() const { return _length; }
@@ -68,13 +68,13 @@ namespace ipna {
 	}
       }
 
-      inline const HostAddress& getFrom() const { return _from; }
+      inline const QHostAddress& getFrom() const { return _from; }
     private:
       size_t _length;
       size_t _currentPosition;
       size_t _frameStart;
       size_t _frameEnd;
-      HostAddress _from;
+      QHostAddress _from;
       PacketData _data;
     };
   }

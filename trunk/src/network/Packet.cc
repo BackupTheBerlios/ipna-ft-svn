@@ -1,9 +1,11 @@
 #include <ipna/network/Packet.hpp>
 
+#include <arpa/inet.h>
+
 using namespace ipna;
 using namespace ipna::network;
 
-Packet::Packet(Packet::PacketData pd, size_t len, const HostAddress& from)
+Packet::Packet(Packet::PacketData pd, size_t len, const QHostAddress& from)
   : _data(pd), _length(len), _from(from), _currentPosition(0) {
 }
 

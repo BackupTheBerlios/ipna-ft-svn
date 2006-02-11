@@ -1,9 +1,9 @@
-LDLIBS=-lboost_program_options
-CXXFLAGS=-O3 -g -I../include
+LDLIBS=-lboost_program_options -lQtCore -lQtNetwork
+CXXFLAGS=-O3 -g -I../include -I/usr/include/qt4 -I/usr/include/qt4/QtCore -I/usr/include/qt4/QtNetwork
 
 PREFIX=/home/ipna
 
-SRCS=network/Socket.cc network/Listener.cc network/SequenceNumberChecker.cc network/Packet.cc network/HostAddress.cc Logger.cc
+SRCS=network/Listener.cc network/SequenceNumberChecker.cc network/Packet.cc network/HostPort.cc Logger.cc
 HDRS=$(wildcard *.hpp)
 
 FANOUT_SRCS=fanout/main.cc fanout/FanoutPacketHandler.cc $(SRCS)

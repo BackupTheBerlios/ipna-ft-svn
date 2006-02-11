@@ -13,7 +13,6 @@
 namespace ipna {
 
   namespace network {
-    class Socket;
     class SequenceNumberChecker;
   }
 

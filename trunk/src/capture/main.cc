@@ -17,67 +17,22 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/classification.hpp>
 
-#include <ipna/network/Socket.hpp>
+#include <ipna/network/HostPort.hpp>
 #include <ipna/network/Listener.hpp>
 #include <ipna/network/PacketHandler.hpp>
 #include <ipna/capture/RecordWriter.hpp>
 #include <ipna/capture/CapturePacketHandler.hpp>
 #include <ipna/Logger.hpp>
 
+#include <QString>
+#include <QUdpSocket>
+#include <QHostAddress>
+
 namespace po = boost::program_options;
 using namespace std;
 using namespace ipna;
 
-typedef int Port;
-typedef string Ip;
-typedef pair<Ip, Port> IpPortPair;
-
 Logger::LoggerPtr logger;
-
-bool checkIpPortPair(IpPortPair& p) {
-  Ip ip = p.first;
-  Port port = p.second;
-
-  // check port
-  if (port < 0 || port > 65535) {
-    return false;
-  }
-
-  struct hostent *hostCheck = gethostbyname(p.first.c_str());
-  if (p.first != "*" && NULL == hostCheck) {
-    herror("gethostbyname");
-    return false;
-  }
-    
-  return true;
-}
-
-template<class T>
-T parseString(const string& s) {
-  stringstream strm(s);
-  T val;
-  strm >> val;
-  return val;
-}
-
-IpPortPair
-splitIntoIpPortPair(const string& s) {
-  // parse the pairs out of s
-  IpPortPair p;
-
-  vector<string> splitted;
-  boost::split(splitted, s, boost::algorithm::is_any_of("/"));
-
-  if (splitted.size() != 2) {
-    LOG_ERROR("invalid ip:port! " << s);
-    exit(1);
-  }
-
-  p.first = splitted[0];
-  p.second = parseString<int>(splitted[1]);
-
-  return p;
-}
 
 int main(int argc, char** argv) {
   string pidfile;
@@ -154,29 +109,14 @@ int main(int argc, char** argv) {
     exit(1);
   }
     
-  // parse listen pair and check it
-  IpPortPair listenPair = splitIntoIpPortPair( vm["listen"].as<string>() );
-  if (!checkIpPortPair(listenPair)) {
-    LOG_ERROR("invalid ip/port pair: " << vm["listen"].as<string>().c_str());
-    exit(3);
-  }
+  network::HostPort listenOn(vm["listen"].as<string>(), vm.count("ipv6") > 0);
+  LOG_DEBUG("listening on: [" << listenOn.host.toString().toStdString() << "]:" << listenOn.port);
 
-  LOG_DEBUG("listening on ip: " << listenPair.first << " port: " << listenPair.second);
-
-  typedef boost::shared_ptr<ipna::network::Socket> SocketPtr;
-
+  typedef boost::shared_ptr<QUdpSocket> SocketPtr;
   SocketPtr listenSocket;
-  int error;
-    
-  try {
-    listenSocket = SocketPtr(network::Socket::UDPSocket());
-  } catch (string & s) {
-    LOG_ERROR(s);
-    exit(3);
-  }
-  if(listenSocket->bind(listenPair.first, listenPair.second) < 0) {
-    perror("bind");
-    LOG_ERROR("could not bind to listen-socket!");
+  listenSocket = SocketPtr(new QUdpSocket());
+  if(! listenSocket->bind(listenOn.host, listenOn.port)) {
+    LOG_ERROR("could not bind to listen-socket: " << listenSocket->errorString().toStdString());
     exit(3);
   }
 

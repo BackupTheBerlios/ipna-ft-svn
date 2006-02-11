@@ -13,8 +13,10 @@
 
 #include <ipna/network/Listener.hpp>
 #include <ipna/network/PacketHandler.hpp>
-#include <ipna/network/Socket.hpp>
 #include <ipna/Logger.hpp>
+
+#include <QUdpSocket>
+#include <QHostAddress>
 
 using namespace std;
 using namespace ipna;
@@ -22,8 +24,8 @@ using namespace ipna::network;
 
 Logger::LoggerPtr Listener::logger = Logger::getLogger("ipna.ft.listener");
 
-Listener::Listener(boost::shared_ptr<Socket> s, unsigned int maxpacketlen)
-  : socket(s), maxpacketlen(maxpacketlen) {
+Listener::Listener(boost::shared_ptr<QUdpSocket> s, unsigned int maxpacketlen)
+  : _socket(s), maxpacketlen(maxpacketlen) {
   packetData = Packet::PacketData(new char[maxpacketlen]);
 }
 
@@ -39,37 +41,47 @@ Listener::addHandler(HandlerPtr h) {
 void
 Listener::start() {
   for (;;) {
-    struct sockaddr_in from;
-    size_t fromlen = sizeof(struct sockaddr);
-    memset(packetData.get(), 0, maxpacketlen);
-    int received = socket->recvfrom(packetData.get(), maxpacketlen, (struct sockaddr*)&from, &fromlen);
-    if (received < 0) {
-      // could not receive packet, so return
-      perror("recvfrom");
-      return;
-    } else {
-      struct timeval tstart, tfinish;
-      double tsecs;
-
-      HostAddress fromAddress(from);
-      Packet::PacketPtr packet(new Packet(packetData, received, fromAddress));
-
-      gettimeofday(&tstart, NULL);
-      for (HandlerIterator h = handler.begin(); h != handler.end(); h++) {
-	if (!h->get()->handlePacket(packet)) {
-	  // could not handle packet, so return
-	  LOG_WARN("could not handle packet!");
-	  return;
-	}
-      }
-      gettimeofday(&tfinish, NULL);
-      tsecs = (tfinish.tv_sec - tstart.tv_sec) +
-	1e-6 * (tfinish.tv_usec - tstart.tv_usec);
-      if (tsecs > 0.4) {
-	LOG_WARN("processing took " << tsecs << "s");
-      } else {
-	LOG_DEBUG("processing took " << tsecs << "s");
-      }	
+    if (!_socket->hasPendingDatagrams()) {
+      usleep(500);
+      continue;
     }
+
+    qint64 dgsize = _socket->pendingDatagramSize();
+    if (dgsize > maxpacketlen) {
+      packetData = Packet::PacketData(new char[dgsize]);
+      maxpacketlen = dgsize;
+    }
+    memset(packetData.get(), 0, maxpacketlen);
+
+    QHostAddress fromAddr;
+    quint16 fromPort;
+    qint64 received = _socket->readDatagram(packetData.get(), dgsize, &fromAddr, &fromPort);
+    if (received < 0) {
+      LOG_WARN("could not receive datagram");
+      continue;
+    }
+
+    struct timeval tstart, tfinish;
+    double tsecs;
+
+    Packet::PacketPtr packet(new Packet(packetData, received, fromAddr));
+
+    gettimeofday(&tstart, NULL);
+    for (HandlerIterator h = handler.begin(); h != handler.end(); h++) {
+      if (!h->get()->handlePacket(packet)) {
+	// could not handle packet, so return
+	LOG_WARN("could not handle packet!");
+	return;
+      }
+    }
+
+    gettimeofday(&tfinish, NULL);
+    tsecs = (tfinish.tv_sec - tstart.tv_sec) +
+      1e-6 * (tfinish.tv_usec - tstart.tv_usec);
+    if (tsecs > 0.4) {
+      LOG_WARN("processing took " << tsecs << "s");
+    } else {
+      LOG_DEBUG("processing took " << tsecs << "s");
+    }	
   }
 }

@@ -1,8 +1,8 @@
 #include <iostream>
 #include <stdio.h>
 #include <sys/socket.h>
+#include <arpa/inet.h>
 
-#include <ipna/network/Socket.hpp>
 #include <ipna/fanout/FanoutPacketHandler.hpp>
 #include <ipna/network/SequenceNumberChecker.hpp>
 #include <ipna/parser/cnfp.hpp>
@@ -15,7 +15,7 @@ using namespace ipna::parser;
 
 Logger::LoggerPtr FanoutPacketHandler::logger = Logger::getLogger("ipna.fanout");
 
-FanoutPacketHandler::FanoutPacketHandler(boost::shared_ptr<Socket> s) :
+FanoutPacketHandler::FanoutPacketHandler(boost::shared_ptr<QUdpSocket> s) :
   socket(s), sequenceChecker(new SequenceNumberChecker()) {
 }
 
@@ -24,8 +24,8 @@ FanoutPacketHandler::~FanoutPacketHandler() {
 }
 
 FanoutPacketHandler*
-FanoutPacketHandler::addDestination(DestinationPtr d) {
-  destinations.push_back(d);
+FanoutPacketHandler::addDestination(const network::HostPort& hp) {
+  destinations.push_back(hp);
   return this;
 }
 
@@ -53,12 +53,14 @@ FanoutPacketHandler::handlePacket(Packet::PacketPtr packet) {
 	    );
   }
 
+  bool deliveredAll = true;
   // deliver packets
-  for (DestinationIterator d = destinations.begin(); d != destinations.end(); d++) {
-    int sent = socket->sendto(packet->getBytes(), packet->getLength(), (struct sockaddr*)(d->get()));
+  for (vector<network::HostPort>::const_iterator d = destinations.begin(); d != destinations.end(); d++) {
+    quint64 sent = socket->writeDatagram(packet->getBytes(), packet->getLength(), d->host, d->port);
     if (sent == -1) {
-      perror("sendto");
-      return false;
-    }  
+      LOG_WARN("could not deliver datagram: " << socket->errorString().toStdString());
+      deliveredAll = false;
+    }
   }
+  return deliveredAll;
 }

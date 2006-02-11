@@ -1,5 +1,4 @@
 #include <ipna/parser/CNFPv9PacketParser.hpp>
-#include <ipna/parser/cnfp.hpp>
 #include <stdio.h>
 #include <vector>
 
@@ -11,22 +10,34 @@ ipna::Logger::LoggerPtr CNFPv9PacketParser::logger = ipna::Logger::getLogger("ip
 
 CNFPv9PacketParser::CNFPv9PacketParser() : PacketParser() {}
 
+bool
+CNFPv9PacketParser::analyze(Packet::PacketPtr packet) {
+  _header = *(cnfp_v9_hdr_t)packet->getCurrentBytes();
+
+  if (logger->isDebugEnabled()) {
+    fprintf(stdout, "version:%d count:%u uptime:%u tstamp:%u seq:%u source:%d\n",
+	    ntohs(_header.common.version),
+	    ntohs(_header.common.count),
+	    ntohl(_header.uptime),
+	    ntohl(_header.tstamp),
+	    ntohl(_header.seq),
+	    ntohl(_header.engine_id)
+	    );
+    fflush(stdout);
+  }
+
+  return ntohs(_header.common.version) == 9;
+}
+
+size_t
+CNFPv9PacketParser::getSequenceNumber() {
+  return ntohl(_header.seq);
+}
+
 size_t
 CNFPv9PacketParser::parse(Packet::PacketPtr packet, PacketParser::RecordVectorPtr records) {
   cnfp_v9_hdr_s header = *(cnfp_v9_hdr_t)packet->getCurrentBytes();
   packet->advanceBytes(sizeof(cnfp_v9_hdr_s));
-
-  if (logger->isDebugEnabled()) {
-    fprintf(stdout, "version:%d count:%u uptime:%u tstamp:%u seq:%u source:%d\n",
-	    ntohs(header.common.version),
-	    ntohs(header.common.count),
-	    ntohl(header.uptime),
-	    ntohl(header.tstamp),
-	    ntohl(header.seq),
-	    ntohl(header.engine_id)
-	    );
-    fflush(stdout);
-  }
 
   const size_t recordsStartSize = records->size();
   size_t recordsRemaining = ntohs(header.common.count);
@@ -65,6 +76,7 @@ CNFPv9PacketParser::parse(Packet::PacketPtr packet, PacketParser::RecordVectorPt
       }
       LOG_DEBUG("pad:" << packet->numRemainingBytesInFrame());
     } else if (1 == fsid) {
+      LOG_DEBUG("got an option template");
       // got an options template
       packet->skipFrame();
     } else {
@@ -79,7 +91,7 @@ CNFPv9PacketParser::parse(Packet::PacketPtr packet, PacketParser::RecordVectorPt
 	// to read them.
 	while (packet->numRemainingBytesInFrame() >= templ->getTotalLength()) {
 	  recordsRemaining--;
-	  LOG_DEBUG("a new record of size:" << templ->getTotalLength() << " begins, remaining records:" << recordsRemaining);
+	  //	  LOG_DEBUG("a new record of size:" << templ->getTotalLength() << " begins, remaining records:" << recordsRemaining);
 
 	  Record::RecordPtr r(new Record(fsid, ntohl(header.tstamp)));
 	  for (unsigned int fieldIdx = 0; fieldIdx < templ->getNumFields(); ++fieldIdx) {
@@ -90,7 +102,7 @@ CNFPv9PacketParser::parse(Packet::PacketPtr packet, PacketParser::RecordVectorPt
 	    r->add(field);
 	    packet->advanceBytes(fLen);
 	  }
-
+	  
 	  records->push_back(r);
 	}
       } else {

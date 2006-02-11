@@ -26,26 +26,29 @@ CapturePacketHandler::CapturePacketHandler(RecordWriter::RecordWriterPtr writer)
 }
 
 CapturePacketHandler::~CapturePacketHandler() {
+  if (records->size() > 0) {
+    _recordWriter->write(records);
+    records->clear();
+  }
 }
 
 bool
 CapturePacketHandler::handlePacket(ipna::network::Packet::PacketPtr packet) {
   ParserPtr parser = parserFactory->getParser(packet->getBytes());
 
-  // parser->analyze(packet);
-  // records = parser->parse(packet);
-  // writer->write(records)
+  if (!parser->analyze(packet))
+    return false;
+
+  size_t seq = parser->getSequenceNumber();
   size_t numNewRecords = parser->parse(packet, records);
-  _recordWriter->write(records);
-  records->clear();
+  LOG_DEBUG("got " << numNewRecords << " new records");
+  if (records->size() > 1024) {
+    _recordWriter->write(records);
+    records->clear();
+  }
   
-  struct cnfp_v9_hdr header;
-  
-  // analyze a little bit
-  header = *(struct cnfp_v9_hdr*)packet->getBytes();
-  //  checkSequenceNumber(ntohl(header.seq));
   SequenceNumberChecker::SequenceError seq_err =
-    sequenceChecker->check(ntohl(header.seq));
+    sequenceChecker->check(seq);
   if (seq_err == SequenceNumberChecker::SEQ_MISSED) {
     LOG_WARN("missed " << (int)(sequenceChecker->missed()) << " packet(s)");
   }

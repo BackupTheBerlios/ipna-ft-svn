@@ -4,6 +4,7 @@
 #include <boost/shared_ptr.hpp>
 #include <vector>
 
+#include <ipna/parser/cnfp.hpp>
 #include <ipna/network/PacketHandler.hpp>
 #include <ipna/network/Packet.hpp>
 
@@ -18,8 +19,11 @@ namespace ipna {
       virtual ~CNFPv9PacketParser() { }
       
       virtual size_t parse(network::Packet::PacketPtr packet, PacketParser::RecordVectorPtr records);
+      virtual bool analyze(network::Packet::PacketPtr packet);
+      virtual size_t getSequenceNumber();
     private:
       static ipna::Logger::LoggerPtr logger;
+      cnfp_v9_hdr_s _header;
     };
   }
 }

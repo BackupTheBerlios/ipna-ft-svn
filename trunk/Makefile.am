@@ -1,8 +1,8 @@
-bin_PROGRAMS=ipnaft
-ipnaft_SOURCES=ipnaft.cc ipnaft.1 xmalloc.c system.h aclocal.m4 getopt.c getopt1.c getopt.h
+bin_PROGRAMS=ipnaft-fanout
+ipnaft_fanout_SOURCES=Logger.cc ipnaft.1 aclocal.m4
 
 #  uncomment the following if ipnaft requires the math library
-#ipnaft_LDADD=-lm
+ipnaft_fanout_LDADD=-lboost_program_options -lQtCore -lQtNetwork
 
 EXTRA_DIST=ipnaft.lsm.in #NAME.texinfo ipnaft.spec.in
 

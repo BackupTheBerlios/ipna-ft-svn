@@ -66,11 +66,11 @@ MAKEINFO = @MAKEINFO@
 PACKAGE = @PACKAGE@
 VERSION = @VERSION@
 
-bin_PROGRAMS = ipnaft
-ipnaft_SOURCES = ipnaft.cc ipnaft.1 xmalloc.c system.h aclocal.m4 getopt.c getopt1.c getopt.h
+bin_PROGRAMS = ipnaft-fanout
+ipnaft_fanout_SOURCES = Logger.cc ipnaft.1 aclocal.m4
 
 #  uncomment the following if ipnaft requires the math library
-#ipnaft_LDADD=-lm
+ipnaft_fanout_LDADD = -lboost_program_options -lQtCore -lQtNetwork
 
 EXTRA_DIST = ipnaft.lsm.in #NAME.texinfo ipnaft.spec.in
 
@@ -95,18 +95,13 @@ DEFS = @DEFS@ -I. -I$(srcdir) -I.
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
-ipnaft_OBJECTS =  ipnaft.o xmalloc.o getopt.o getopt1.o
-ipnaft_LDADD = $(LDADD)
-ipnaft_DEPENDENCIES = 
-ipnaft_LDFLAGS = 
+ipnaft_fanout_OBJECTS =  Logger.o
+ipnaft_fanout_DEPENDENCIES = 
+ipnaft_fanout_LDFLAGS = 
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 CXXLD = $(CXX)
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@
-CFLAGS = @CFLAGS@
-COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-CCLD = $(CC)
-LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
 TEXI2DVI = texi2dvi
 INFO_DEPS = ipnaft.info
 DVIS = ipnaft.dvi
@@ -125,10 +120,9 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = tar
 GZIP_ENV = --best
-DEP_FILES =  .deps/getopt.P .deps/getopt1.P .deps/ipnaft.P \
-.deps/xmalloc.P
-SOURCES = $(ipnaft_SOURCES)
-OBJECTS = $(ipnaft_OBJECTS)
+DEP_FILES =  .deps/Logger.P
+SOURCES = $(ipnaft_fanout_SOURCES)
+OBJECTS = $(ipnaft_fanout_OBJECTS)
 
 all: all-redirect
 .SUFFIXES:
@@ -221,9 +215,9 @@ distclean-compile:
 
 maintainer-clean-compile:
 
-ipnaft: $(ipnaft_OBJECTS) $(ipnaft_DEPENDENCIES)
-	@rm -f ipnaft
-	$(CXXLINK) $(ipnaft_LDFLAGS) $(ipnaft_OBJECTS) $(ipnaft_LDADD) $(LIBS)
+ipnaft-fanout: $(ipnaft_fanout_OBJECTS) $(ipnaft_fanout_DEPENDENCIES)
+	@rm -f ipnaft-fanout
+	$(CXXLINK) $(ipnaft_fanout_LDFLAGS) $(ipnaft_fanout_OBJECTS) $(ipnaft_fanout_LDADD) $(LIBS)
 .cc.o:
 	$(CXXCOMPILE) -c $<
 

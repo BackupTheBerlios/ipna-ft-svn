@@ -1,0 +1,21 @@
+Begin3
+Title:		ipnaft
+Version:	@VERSION@
+Entered-date:	@ISODATE@
+Description:	foobar
+		@configure_input@
+		Please edit ipnaft.lsm.in to fix the Keywords and
+		Primary-site entries, add several more lines of
+		description here if appropriate, and to delete these
+		instructions.
+Keywords:	[substitute your keywords here]
+Author: 	alex@rhrk.uni-kl.de (Alexander Petry)
+Maintained-by:	alex@rhrk.uni-kl.de (Alexander Petry)
+Primary-site:	metlab.unc.edu pub/Linux/apps/some/directory
+		31k ipnaft-@VERSION@.tar.gz
+		500  ipnaft.lsm
+Alternate-site: 
+Original-site:  
+Platforms:      
+Copying-policy:	GNU copyleft
+End

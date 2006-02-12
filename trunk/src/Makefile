@@ -10,12 +10,12 @@ CXXFLAGS=-O3 -fPIC -g -I../include -I/usr/include/qt4 -I/usr/include/qt4/QtCore 
 
 PREFIX=/home/ipna
 
-SRCS=network/Listener.cc network/SequenceNumberChecker.cc network/Packet.cc network/HostPort.cc Logger.cc
+SRCS=network/Listener.cc network/SequenceNumberChecker.cc network/Packet.cc network/HostPort.cc IPNAProgram.cc Logger.cc
 CORE_HDRS=$(addprefix $(INCLUDE_DIR), $(SRCS:.cc=.hpp))
 CORE_OBJS=$(SRCS:.cc=.o)
 CORE_LIB=libipnaftcore.so
 
-FANOUT_SRCS=fanout/FanoutPacketHandler.cc
+FANOUT_SRCS=fanout/FanoutProgram.cc fanout/FanoutPacketHandler.cc
 FANOUT_HDRS=$(addprefix $(INCLUDE_DIR), $(FANOUT_SRCS:.cc=.hpp))
 
 FANOUT_MAIN=fanout/main.cc
@@ -32,7 +32,7 @@ PARSER_OBJS=$(PARSER_SRCS:.cc=.o)
 PARSER_LIB_OBJS=$(PARSER_OBJS)
 PARSER_LIB=libipnaftparser.so
 
-CAPTURE_SRCS=capture/CapturePacketHandler.cc capture/RecordWriter.cc capture/Formatter.cc
+CAPTURE_SRCS=capture/CaptureProgram.cc capture/CapturePacketHandler.cc capture/RecordWriter.cc capture/Formatter.cc
 CAPTURE_HDRS=$(addprefix $(INCLUDE_DIR), $(CAPTURE_SRCS:.cc=.hpp))
 CAPTURE_MAIN=capture/main.cc
 CAPTURE_OBJS=$(CAPTURE_MAIN:.cc=.o) $(CAPTURE_SRCS:.cc=.o) $(PARSER_SRCS:.cc=.o) $(SRCS:.cc=.o)

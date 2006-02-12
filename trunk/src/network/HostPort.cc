@@ -20,13 +20,13 @@ T parseString(const std::string& s) {
   return val;
 }
 
-HostPort::HostPort(const std::string& s, bool useIPv6) {
+HostPort::HostPort(const std::string& hpString, bool useIPv6) {
   std::vector<std::string> splitted;
-  boost::split(splitted, s, boost::algorithm::is_any_of("/"));
+  boost::split(splitted, hpString, boost::algorithm::is_any_of("/"));
 
   if (splitted.size() < 2) {
-    LOG_ERROR("invalid ip/port! " << s);
-    exit(1);
+    LOG_ERROR("invalid ip/port! " << hpString);
+    throw std::string("invalid ip/port!");
   }
 
   if (splitted[0] == "*") {

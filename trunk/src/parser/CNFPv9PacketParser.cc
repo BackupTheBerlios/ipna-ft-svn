@@ -15,7 +15,7 @@ CNFPv9PacketParser::analyze(Packet::PacketPtr packet) {
   _header = *(cnfp_v9_hdr_t)packet->getCurrentBytes();
 
   if (logger->isDebugEnabled()) {
-    fprintf(stdout, "version:%d count:%u uptime:%u tstamp:%u seq:%u source:%d\n",
+    fprintf(stderr, "version:%d count:%u uptime:%u tstamp:%u seq:%u source:%d\n",
 	    ntohs(_header.common.version),
 	    ntohs(_header.common.count),
 	    ntohl(_header.uptime),
@@ -23,7 +23,7 @@ CNFPv9PacketParser::analyze(Packet::PacketPtr packet) {
 	    ntohl(_header.seq),
 	    ntohl(_header.engine_id)
 	    );
-    fflush(stdout);
+    fflush(stderr);
   }
 
   return ntohs(_header.common.version) == 9;

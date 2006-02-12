@@ -43,7 +43,7 @@ FanoutPacketHandler::handlePacket(Packet::PacketPtr packet) {
   }
 
   if (logger->isDebugEnabled()) {
-    fprintf(stdout, "version:%d count:%u uptime:%u tstamp:%u seq:%u source:%d\n",
+    fprintf(stderr, "version:%d count:%u uptime:%u tstamp:%u seq:%u source:%d\n",
 	    ntohs(header.common.version),
 	    ntohs(header.common.count),
 	    ntohl(header.uptime),

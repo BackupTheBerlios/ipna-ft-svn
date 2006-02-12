@@ -11,7 +11,7 @@ namespace ipna {
   class Logger {
   public:
 
-#define LOG_MSG(prio,msg) { std::stringstream s; if (logger->isPriorityLevelEnabled(prio)) { s /*<< __PRETTY_FUNCTION__*/ << ":" << msg; logger->log(prio,s.str());} }
+#define LOG_MSG(prio,msg) { std::stringstream s; if (logger->isPriorityLevelEnabled(prio)) { s /*<< __PRETTY_FUNCTION__ << ":"*/ << msg; logger->log(prio,s.str());} }
 #define LOG_DEBUG(msg) LOG_MSG(::ipna::Logger::DEBUG, msg)
 #define LOG_FATAL(msg) LOG_MSG(::ipna::Logger::FATAL, msg)
 #define LOG_INFO(msg) LOG_MSG(::ipna::Logger::INFO, msg)
@@ -35,6 +35,7 @@ namespace ipna {
     std::string name;
     PriorityLevel level;
     static boost::shared_ptr<Logger> newLogger(const std::string& name, PriorityLevel prio);
+    //    static LoggerPtr _root;
   protected:
     Logger(const std::string& name, PriorityLevel l);
   public:

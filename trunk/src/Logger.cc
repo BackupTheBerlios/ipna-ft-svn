@@ -11,6 +11,8 @@ using namespace std;
 typedef map<string, boost::shared_ptr<Logger> > LoggerMap;
 
 LoggerMap Logger::loggerMap;
+//Logger::LoggerPtr Logger::_root = Logger::newLogger("root", Logger::FATAL);
+
 char* Logger::priorityNameMap[] = { "FATAL", "ERROR", "WARN", "INFO", "DEBUG", "UNKNOWN" };
 
 Logger::Logger(const string& name, Logger::PriorityLevel l)

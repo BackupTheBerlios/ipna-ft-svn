@@ -1,4 +1,0 @@
-Main ipna-ft-fanout : fanout/main.cc network/Socket.cc network/Listener.cc fanout/FanoutPacketHandler.cc Logger.cc network/SequenceNumberChecker.cc ;
-HDRS = ../include ;
-LINKLIBS on ipna-ft-fanout = -lboost_program_options ;
-

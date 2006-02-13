@@ -37,10 +37,11 @@ CNFPv9PacketParser::getSequenceNumber() {
 size_t
 CNFPv9PacketParser::parse(Packet::PacketPtr packet, PacketParser::RecordVectorPtr records) {
   cnfp_v9_hdr_s header = *(cnfp_v9_hdr_t)packet->getCurrentBytes();
-  packet->advanceBytes(sizeof(cnfp_v9_hdr_s));
+  packet->moveCursor(sizeof(cnfp_v9_hdr_s));
 
   const size_t recordsStartSize = records->size();
   size_t recordsRemaining = ntohs(header.common.count);
+
   
   while (packet->dataLeft()) {
     // get the flow-set id
@@ -50,7 +51,9 @@ CNFPv9PacketParser::parse(Packet::PacketPtr packet, PacketParser::RecordVectorPt
 
     // start a new reading frame within the packet of length 'length'
     // but start it at the point where we have read the id and length fields
-    packet->startFrame(length, -2*(sizeof(unsigned short)));
+    packet->moveCursor(-2*(sizeof(unsigned short)));
+    packet->startFrame(length);
+    packet->moveCursor( 2*(sizeof(unsigned short)));
     
     if (0 == fsid) {
       recordsRemaining--;
@@ -59,24 +62,29 @@ CNFPv9PacketParser::parse(Packet::PacketPtr packet, PacketParser::RecordVectorPt
 
       // read all template definitions as long as there are enough bytes left
       // to read the template id and the fieldcount, the rest is then padding
-      while (packet->numRemainingBytesInFrame() > (2*entryLength)) {
+      while (packet->dataLeftInFrame() > (2*entryLength)) {
 	unsigned short templateId = packet->getNextShort();
 	unsigned short fieldCount = packet->getNextShort();
 	LOG_DEBUG("tid:" << templateId << " fcount:" << fieldCount);
 
 	Template::TemplatePtr templ(new Template(templateId));
-	for (unsigned int field = 0; field < fieldCount; field++) {
+
+	packet->startFrame(fieldCount * 2*sizeof(unsigned short));
+	//	for (unsigned int field = 0; field < fieldCount; field++) {
+	while (packet->dataLeftInFrame()) {
 	  unsigned short fieldType = packet->getNextShort();
 	  unsigned short fieldLength = packet->getNextShort();
 	  templ->addField(fieldType,fieldLength);
 	  LOG_DEBUG("field:"<<fieldType<<" length:"<<fieldLength);
 	}
+	packet->endFrame();
+
 	templ->update();
 	getTemplateManager()->put(templ);
       }
-      LOG_DEBUG("pad:" << packet->numRemainingBytesInFrame());
+      LOG_DEBUG("pad:" << packet->dataLeftInFrame());
     } else if (1 == fsid) {
-      LOG_DEBUG("got an option template");
+      LOG_DEBUG("got an option template, skipping");
       // got an options template
       packet->skipFrame();
     } else {
@@ -89,10 +97,11 @@ CNFPv9PacketParser::parse(Packet::PacketPtr packet, PacketParser::RecordVectorPt
 
 	// read all records as long as there are enough bytes left
 	// to read them.
-	while (packet->numRemainingBytesInFrame() >= templ->getTotalLength()) {
+	while (packet->dataLeftInFrame() >= templ->getTotalLength()) {
 	  recordsRemaining--;
 	  //	  LOG_DEBUG("a new record of size:" << templ->getTotalLength() << " begins, remaining records:" << recordsRemaining);
 
+	  packet->startFrame(templ->getTotalLength());
 	  Record::RecordPtr r(new Record(fsid, ntohl(header.tstamp)));
 	  for (unsigned int fieldIdx = 0; fieldIdx < templ->getNumFields(); ++fieldIdx) {
 	    unsigned int fId = templ->getFieldId(fieldIdx);
@@ -100,8 +109,9 @@ CNFPv9PacketParser::parse(Packet::PacketPtr packet, PacketParser::RecordVectorPt
 
 	    Field::FieldPtr field(new Field(fId,packet->getCurrentBytes(),fLen));
 	    r->add(field);
-	    packet->advanceBytes(fLen);
+	    packet->moveCursor(fLen);
 	  }
+	  packet->endFrame();
 	  
 	  records->push_back(r);
 	}
@@ -110,6 +120,8 @@ CNFPv9PacketParser::parse(Packet::PacketPtr packet, PacketParser::RecordVectorPt
       }
       packet->skipFrame();
     }
+
+    packet->endFrame();
   }
 
   LOG_DEBUG(packet->getCurrentPosition() << "/" << packet->getLength() << " bytes read");

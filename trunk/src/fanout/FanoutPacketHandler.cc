@@ -3,6 +3,8 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
+#include <QHostAddress>
+
 #include <ipna/fanout/FanoutPacketHandler.hpp>
 #include <ipna/network/SequenceNumberChecker.hpp>
 #include <ipna/parser/cnfp.hpp>
@@ -30,7 +32,26 @@ FanoutPacketHandler::addDestination(const network::HostPort& hp) {
 }
 
 bool
+FanoutPacketHandler::setEngineId(Packet::PacketPtr packet) {
+  struct cnfp_v9_hdr *header = (struct cnfp_v9_hdr*)packet->getBytes();
+  QHostAddress _rauter("10.0.0.1");
+  QHostAddress _retuar("131.246.1.102");
+  if (packet->getFrom() == _rauter) {
+    // retuar
+    header->engine_id = htonl(1);
+    return true;
+  } else if (packet->getFrom() == _retuar) {
+    // rauter
+    header->engine_id = htonl(0);
+    return true;
+  }
+  return false;
+}
+
+bool
 FanoutPacketHandler::handlePacket(Packet::PacketPtr packet) {
+  setEngineId(packet);
+  
   struct cnfp_v9_hdr header;
   
   // analyze a little bit

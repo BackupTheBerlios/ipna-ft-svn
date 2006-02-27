@@ -42,7 +42,7 @@ CapturePacketHandler::handlePacket(ipna::network::Packet::PacketPtr packet) {
   size_t seq = parser->getSequenceNumber();
   size_t numNewRecords = parser->parse(packet, records);
   LOG_DEBUG("got " << numNewRecords << " new records");
-  if (records->size() > 1024) {
+  if (records->size() > 1024 || logger->isDebugEnabled()) {
     _recordWriter->write(records);
     records->clear();
   }

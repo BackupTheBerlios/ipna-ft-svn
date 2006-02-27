@@ -13,7 +13,7 @@ namespace ipna {
     public:
       typedef boost::shared_ptr<Record> RecordPtr;
       
-      Record(unsigned int templateId, time_t tstamp) : _templateId(templateId), _tstamp(tstamp) {}
+      Record(unsigned int templateId, time_t tstamp, unsigned int engine = 0) : _templateId(templateId), _tstamp(tstamp), _engineId(engine) {}
       virtual ~Record() {
 	_values.clear();
       }
@@ -35,10 +35,14 @@ namespace ipna {
       inline time_t tstamp() const {
 	return _tstamp;
       }
+      inline unsigned int engineId() const {
+	return _engineId;
+      }
     private:
       std::map<Field::FieldId, Field::FieldPtr> _values;
       unsigned int _templateId;
       time_t _tstamp;
+      unsigned int _engineId;
     };
   }
 }

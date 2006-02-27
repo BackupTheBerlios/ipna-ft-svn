@@ -21,6 +21,7 @@ std::ostream&
 Formatter::format(ipna::parser::Record::RecordPtr record, std::ostream& os) {
   os
     << record->tstamp() << '\t'
+    << record->engineId() << '\t'
     << record->get(10)->asUInt() << '\t'
     << record->get(8)->asIp()    << '\t'
     << record->get(9)->asUInt() << '\t'

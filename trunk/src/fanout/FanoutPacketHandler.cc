@@ -31,9 +31,26 @@ FanoutPacketHandler::addDestination(const network::HostPort& hp) {
   return this;
 }
 
+FanoutPacketHandler*
+FanoutPacketHandler::addEngineMapping(const HostPort& hp) {
+  engineMapping.push_back(hp);
+  return this;
+}
+
 bool
 FanoutPacketHandler::setEngineId(Packet::PacketPtr packet) {
   struct cnfp_v9_hdr *header = (struct cnfp_v9_hdr*)packet->getBytes();
+  typedef vector<network::HostPort> EngineMap;
+  for (EngineMap::iterator it = engineMapping.begin(); it != engineMapping.end(); it++) {
+    if (packet->getFrom() == it->host) {
+      LOG_DEBUG("mapping " << packet->getFrom().toString().toStdString() << " to " << it->port);
+      header->engine_id = htonl(it->port);
+      return true;
+    }
+  }
+  return false;
+
+  /*  
   QHostAddress _rauter("10.0.0.1");
   QHostAddress _retuar("131.246.1.102");
   if (packet->getFrom() == _rauter) {
@@ -46,6 +63,7 @@ FanoutPacketHandler::setEngineId(Packet::PacketPtr packet) {
     return true;
   }
   return false;
+  */
 }
 
 bool

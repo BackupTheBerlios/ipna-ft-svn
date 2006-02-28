@@ -16,6 +16,7 @@ FanoutProgram::FanoutProgram(const std::string& name)
     getOptions().add_options()
       ("only-from,o", po::value<std::string>(), "fan out packets only from this source ip")
       ("listen,l", po::value<std::string>(), "listen on ip/port")
+      ("engine-map,m", po::value<std::vector<std::string> >(), "ip to engine mapping (ip/engine)")
       ("export,e", po::value< std::vector<std::string> >(), "export to these probes (ip/port)")
       ;
     getPositionalOptions().add("export", -1);
@@ -86,6 +87,16 @@ FanoutProgram::initialize(int argc, char **argv) {
   // create destination infos:
   for (std::vector<network::HostPort>::iterator it = exportTo.begin(); it != exportTo.end(); it++) {
     _handler->addDestination(*it);
+  }
+
+  // create engine id mappings:
+  std::vector<std::string> engineMappings = getArgumentMap()["engine-map"].as< std::vector<std::string> >();
+  for (std::vector<std::string>::iterator it = engineMappings.begin(); it != engineMappings.end(); it++) {
+    try {
+      _handler->addEngineMapping(network::HostPort(*it,isSet("ipv6")));
+    } catch (std::string& e) {
+      LOG_ERROR(e);
+    }
   }
 }
 

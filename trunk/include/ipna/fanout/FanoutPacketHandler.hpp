@@ -24,6 +24,7 @@ namespace ipna {
       virtual ~FanoutPacketHandler();
       virtual bool handlePacket(network::Packet::PacketPtr packet);
       virtual FanoutPacketHandler* addDestination(const network::HostPort& hp);
+      virtual FanoutPacketHandler* addEngineMapping(const network::HostPort& hp);
     protected:
       virtual bool setEngineId(network::Packet::PacketPtr packet);
     private:
@@ -31,6 +32,7 @@ namespace ipna {
       boost::shared_ptr<QUdpSocket> socket;
       boost::shared_ptr<ipna::network::SequenceNumberChecker> sequenceChecker;
       std::vector<network::HostPort> destinations;
+      std::vector<network::HostPort> engineMapping;
     };
   }
 }

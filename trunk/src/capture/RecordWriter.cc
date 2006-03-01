@@ -4,22 +4,23 @@ using namespace ipna;
 using namespace ipna::capture;
 using namespace ipna::parser;
 
-RecordWriter::RecordWriter(Formatter::FormatterPtr formatter, std::ostream& stream)
-  : _stream(stream), _formatter(formatter) {
+RecordWriter::RecordWriter(Formatter::FormatterPtr formatter)
+  : _formatter(formatter) {
+  setStream(std::cout);
 }
 
 void
 RecordWriter::write(PacketParser::RecordVectorPtr records) {
-  _formatter->startRecordSet();
+  getFormatter()->startRecordSet();
   for (PacketParser::RecordVector::iterator it = records->begin(); it != records->end(); it++) {
     write(*it);
   }
-  _formatter->endRecordSet();
+  getFormatter()->endRecordSet();
 }
 
 void
 RecordWriter::write(Record::RecordPtr r) {
-  _formatter->format(r, getStream());
+  getFormatter()->format(r, getStream());
 }
 
 RecordWriter::RecordWriterPtr

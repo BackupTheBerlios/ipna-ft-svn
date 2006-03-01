@@ -38,6 +38,10 @@ namespace ipna {
       inline unsigned int engineId() const {
 	return _engineId;
       }
+
+      static inline bool compare_lt(RecordPtr r1, RecordPtr r2) {
+	return r1->tstamp() < r2->tstamp();
+      }
     private:
       std::map<Field::FieldId, Field::FieldPtr> _values;
       unsigned int _templateId;

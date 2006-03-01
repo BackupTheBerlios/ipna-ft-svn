@@ -5,7 +5,7 @@ VERSION=$(MAJOR_VERSION).$(MINOR_VERSION)
 INCLUDE_DIR=../include/ipna/
 
 LDFLAGS=-L.
-LDLIBS=-lboost_program_options -lQtCore -lQtNetwork #-lipnaftcore
+LDLIBS=-lboost_program_options -lboost_filesystem -lQtCore -lQtNetwork #-lipnaftcore
 CXXFLAGS=-O3 -fPIC -g -I../include -I/usr/include/qt4 -I/usr/include/qt4/QtCore -I/usr/include/qt4/QtNetwork
 
 PREFIX=/home/ipna
@@ -32,7 +32,7 @@ PARSER_OBJS=$(PARSER_SRCS:.cc=.o)
 PARSER_LIB_OBJS=$(PARSER_OBJS)
 PARSER_LIB=libipnaftparser.so
 
-CAPTURE_SRCS=capture/CaptureProgram.cc capture/CapturePacketHandler.cc capture/RecordWriter.cc capture/Formatter.cc
+CAPTURE_SRCS=capture/CaptureProgram.cc capture/CapturePacketHandler.cc capture/FileRecordWriter.cc capture/RecordWriter.cc capture/Formatter.cc
 CAPTURE_HDRS=$(addprefix $(INCLUDE_DIR), $(CAPTURE_SRCS:.cc=.hpp))
 CAPTURE_MAIN=capture/main.cc
 CAPTURE_OBJS=$(CAPTURE_MAIN:.cc=.o) $(CAPTURE_SRCS:.cc=.o) $(PARSER_SRCS:.cc=.o) $(SRCS:.cc=.o)

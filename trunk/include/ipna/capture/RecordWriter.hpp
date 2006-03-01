@@ -14,19 +14,24 @@ namespace ipna {
     public:
       typedef boost::shared_ptr<RecordWriter> RecordWriterPtr;
       
-      RecordWriter(Formatter::FormatterPtr formatter, std::ostream& os = std::cout);
+      RecordWriter(Formatter::FormatterPtr formatter);
       virtual ~RecordWriter() {}
 
       virtual void write(ipna::parser::Record::RecordPtr record);
       virtual void write(ipna::parser::PacketParser::RecordVectorPtr records);
 
-    protected:
-      virtual std::ostream& getStream() {
-	return _stream;
+      void setStream(std::ostream& os) {
+	_stream = &os;
       }
-
+    protected:
+      inline virtual std::ostream& getStream() {
+	return *_stream;
+      }
+      inline Formatter::FormatterPtr getFormatter() {
+	return _formatter;
+      }
     private:
-      std::ostream& _stream;
+      std::ostream *_stream;
       Formatter::FormatterPtr _formatter;
     }; // class RecordWriter
 

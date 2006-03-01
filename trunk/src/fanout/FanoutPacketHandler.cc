@@ -49,21 +49,6 @@ FanoutPacketHandler::setEngineId(Packet::PacketPtr packet) {
     }
   }
   return false;
-
-  /*  
-  QHostAddress _rauter("10.0.0.1");
-  QHostAddress _retuar("131.246.1.102");
-  if (packet->getFrom() == _rauter) {
-    // rauter
-    header->engine_id = htonl(0);
-    return true;
-  } else if (packet->getFrom() == _retuar) {
-    // retuar
-    header->engine_id = htonl(1);
-    return true;
-  }
-  return false;
-  */
 }
 
 bool

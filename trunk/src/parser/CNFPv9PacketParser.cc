@@ -41,7 +41,7 @@ CNFPv9PacketParser::parse(Packet::PacketPtr packet, PacketParser::RecordVectorPt
 
   const size_t recordsStartSize = records->size();
   size_t recordsRemaining = ntohs(header.common.count);
-
+  unsigned int engine = ntohl(header.engine_id);
   
   while (packet->dataLeft()) {
     // get the flow-set id
@@ -80,7 +80,7 @@ CNFPv9PacketParser::parse(Packet::PacketPtr packet, PacketParser::RecordVectorPt
 	packet->endFrame();
 
 	templ->update();
-	getTemplateManager()->put(templ);
+	getTemplateManager(engine)->put(templ);
       }
       LOG_DEBUG("pad:" << packet->dataLeftInFrame());
     } else if (1 == fsid) {
@@ -89,11 +89,11 @@ CNFPv9PacketParser::parse(Packet::PacketPtr packet, PacketParser::RecordVectorPt
       packet->skipFrame();
     } else {
       // got a data flow set
-      if (getTemplateManager()->isKnown(fsid) && getTemplateManager()->get(fsid)->getTotalLength() > 0) {
+      if (getTemplateManager(engine)->isKnown(fsid) && getTemplateManager(engine)->get(fsid)->getTotalLength() > 0) {
 	LOG_DEBUG("got a known data flow set:" << fsid);
 	const size_t entryLength = sizeof(unsigned short);
 
-	Template::TemplatePtr templ = getTemplateManager()->get(fsid);
+	Template::TemplatePtr templ = getTemplateManager(engine)->get(fsid);
 
 	// read all records as long as there are enough bytes left
 	// to read them.
@@ -102,7 +102,7 @@ CNFPv9PacketParser::parse(Packet::PacketPtr packet, PacketParser::RecordVectorPt
 	  //	  LOG_DEBUG("a new record of size:" << templ->getTotalLength() << " begins, remaining records:" << recordsRemaining);
 
 	  packet->startFrame(templ->getTotalLength());
-	  Record::RecordPtr r(new Record(fsid, ntohl(header.tstamp), ntohl(header.engine_id)));
+	  Record::RecordPtr r(new Record(fsid, ntohl(header.tstamp), engine));
 	  for (unsigned int fieldIdx = 0; fieldIdx < templ->getNumFields(); ++fieldIdx) {
 	    unsigned int fId = templ->getFieldId(fieldIdx);
 	    unsigned int fLen= templ->getFieldLength(fieldIdx);

@@ -23,7 +23,7 @@ namespace ipna {
   namespace capture {
     class CapturePacketHandler : public ipna::network::PacketHandler {
     public:
-      CapturePacketHandler(RecordWriter::RecordWriterPtr writer);
+      CapturePacketHandler(RecordWriter::RecordWriterPtr writer, unsigned int queueSize = 1024);
       virtual ~CapturePacketHandler();
       virtual bool handlePacket(ipna::network::Packet::PacketPtr packet);
     private:
@@ -32,6 +32,7 @@ namespace ipna {
       boost::shared_ptr<ipna::parser::ParserFactory> parserFactory;
       ipna::parser::PacketParser::RecordVectorPtr records;
       boost::shared_ptr<RecordWriter> _recordWriter;
+      unsigned int _queueSize;
     };
   }
 }

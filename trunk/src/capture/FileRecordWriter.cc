@@ -115,6 +115,7 @@ void
 FileRecordWriter::writeHeader() {
   if (_file.good()) {
     _file << "#" << std::endl;
+    _file << "# version:\t 0.2" << std::endl;
     _file << "# capture hostname:\t" << "[unknown]" << std::endl;
     _file << "# capture start:\t"    << asctime(localtime(&_curBlockStart));
     _file << "# capture end:\t"      << asctime(localtime(&_curBlockEnd));

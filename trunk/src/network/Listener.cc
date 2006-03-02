@@ -25,7 +25,7 @@ using namespace ipna::network;
 Logger::LoggerPtr Listener::logger = Logger::getLogger("ipna.ft.listener");
 
 Listener::Listener(boost::shared_ptr<QUdpSocket> s, unsigned int maxpacketlen)
-  : _socket(s), maxpacketlen(maxpacketlen) {
+  : _socket(s), maxpacketlen(maxpacketlen), _stopped(false) {
   packetData = Packet::PacketData(new char[maxpacketlen]);
 }
 
@@ -40,7 +40,9 @@ Listener::addHandler(HandlerPtr h) {
 
 void
 Listener::start() {
-  for (;;) {
+  _stopped = false;
+  
+  while (!isStopped()) {
     if (!_socket->hasPendingDatagrams()) {
       usleep(500);
       continue;

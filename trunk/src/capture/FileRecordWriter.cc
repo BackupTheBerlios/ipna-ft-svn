@@ -44,18 +44,7 @@ FileRecordWriter::FileRecordWriter(Formatter::FormatterPtr formatter,
 
 time_t
 FileRecordWriter::getBlockEnd(time_t blockStart) {
-  time_t blockEnd   = 0;
-  struct tm *tmPointer = localtime(&blockStart);
-  tmPointer->tm_sec = 0;
-  tmPointer->tm_min = 0;
-  tmPointer->tm_hour = 0;
-  blockEnd = mktime(tmPointer);
-
-  while (blockEnd <= blockStart) {
-    blockEnd += _timeDelta;
-  }
-
-  return blockEnd;
+  return blockStart + (_timeDelta - (blockStart % _timeDelta));
 }
 
 std::string

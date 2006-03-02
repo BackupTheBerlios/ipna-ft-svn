@@ -19,6 +19,7 @@ namespace ipna {
     virtual void initialize(int argc, char **argv);
 
     virtual void start() = 0;
+    virtual void stop() = 0;
     
     inline po::options_description& getOptions() {
       return _options;

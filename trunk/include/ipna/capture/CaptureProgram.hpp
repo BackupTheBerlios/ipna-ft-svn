@@ -20,6 +20,7 @@ namespace ipna {
 
       virtual void initialize(int argc, char **argv);
       virtual void start();
+      virtual void stop() { if (_listener.get()) _listener->stop(); }
     private:
       boost::shared_ptr<network::Listener> _listener;
       boost::shared_ptr<capture::Formatter> _formatter;

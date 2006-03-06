@@ -3,6 +3,8 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/convenience.hpp>
 
+#include <QHostInfo>
+
 #include <assert.h>
 #include <time.h>
 #include <algorithm>
@@ -34,6 +36,7 @@ FileRecordWriter::FileRecordWriter(Formatter::FormatterPtr formatter,
       fs::create_directories(fs::path(workingDir));
     } catch (...) {
       LOG_ERROR("could not create directory '" << workingDir << "'");
+      exit(1);
     }
     assert(chdir(workingDir.c_str()) == 0);
   }
@@ -80,22 +83,18 @@ FileRecordWriter::getNestingFormat(int level) {
 
 std::string
 FileRecordWriter::getFormattedName(const std::string& fmt, time_t *t) {
-  size_t tmpSize = 64;
+  const size_t tmpSize = 256;
+  char tmp[tmpSize];
   std::string name;
   if (NULL == t)
     t = &_curBlockStart;
   
-  while (true) {
-    char *tmp = new char[tmpSize];
-    struct tm *tmPointer = localtime(t);
-    if (strftime(tmp,tmpSize,fmt.c_str(), tmPointer) == 0) {
-      delete [] tmp;
-      tmpSize *= 2;
-    } else {
-      name.assign(tmp);
-      delete [] tmp;
-      break;
-    }
+  struct tm *tmPointer = localtime(t);
+  if (strftime(tmp,tmpSize,fmt.c_str(), tmPointer) == 0) {
+    LOG_ERROR("strftime returned 0: could not put date with format '" << fmt << "' in buffer of size " << tmpSize);
+    exit(1);
+  } else {
+    name.assign(tmp);
   }
   return name;
 }
@@ -104,10 +103,10 @@ void
 FileRecordWriter::writeHeader() {
   if (_file.good()) {
     _file << "#" << std::endl;
-    _file << "# version:\t 0.2" << std::endl;
-    _file << "# capture hostname:\t" << "[unknown]" << std::endl;
-    _file << "# capture start:\t"    << asctime(localtime(&_curBlockStart));
-    _file << "# capture end:\t"      << asctime(localtime(&_curBlockEnd));
+    _file << "# version:\t 0.2"   << std::endl;
+    _file << "# capture host: \t" << QHostInfo::localHostName().toStdString() << std::endl;
+    _file << "# capture start:\t" << asctime(localtime(&_curBlockStart));
+    _file << "# capture end:  \t" << asctime(localtime(&_curBlockEnd));
     _file << "#" << std::endl;
   }
 }
@@ -166,7 +165,7 @@ FileRecordWriter::openNewFile(time_t t) {
 void
 FileRecordWriter::write(Record::RecordPtr r) {
   // change the stream here
-  if ( r->tstamp() > _curBlockEnd ) {
+  if ( r->tstamp() > _curBlockEnd /* || time(NULL) > _curBlockEnd */) {
     openNewFile(_curBlockEnd);
   }
 

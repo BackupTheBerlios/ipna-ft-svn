@@ -5,6 +5,7 @@
 #include <ipna/network/Packet.hpp>
 
 #include <arpa/inet.h>
+#include <ostream>
 #include <string>
 
 namespace ipna {
@@ -27,6 +28,8 @@ namespace ipna {
       size_t _numBytes;
       FieldId _id;
     };
+
+    std::ostream& operator<<(std::ostream&, const Field&);
   }
 }
 

@@ -51,3 +51,8 @@ Field::asIp() const {
     return "not an ip";
   }
 }
+
+std::ostream&
+operator<<(std::ostream& os, const Field& field) {
+  return os << field.toString();
+}

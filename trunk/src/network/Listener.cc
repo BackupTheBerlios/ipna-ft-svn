@@ -27,6 +27,7 @@ Logger::LoggerPtr Listener::logger = Logger::getLogger("ipna.ft.listener");
 Listener::Listener(boost::shared_ptr<QUdpSocket> s, unsigned int maxpacketlen)
   : _socket(s), maxpacketlen(maxpacketlen), _stopped(false) {
   packetData = Packet::PacketData(new char[maxpacketlen]);
+  _socket->blockSignals(true);
 }
 
 Listener::~Listener() {
@@ -59,7 +60,7 @@ Listener::start() {
     quint16 fromPort;
     qint64 received = _socket->readDatagram(packetData.get(), dgsize, &fromAddr, &fromPort);
     if (received < 0) {
-      LOG_WARN("could not receive datagram");
+      LOG_WARN("could not receive datagram: " << _socket->error() << ": " << _socket->errorString().toStdString() );
       continue;
     }
 

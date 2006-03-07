@@ -20,7 +20,7 @@
 set -x
 aclocal \
 && autoheader \
-&& automake --foreign --add-missing --copy \
+&& automake --gnu --add-missing --copy \
 && autoconf
 
 ## @end 1

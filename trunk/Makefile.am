@@ -23,7 +23,7 @@ AUX_DIST_EXTRA		= $(auxdir)/readline.m4 $(auxdir)/sys_errlist.m4 \
 EXTRA_DIST		= bootstrap
 
 AUTOMAKE_OPTIONS 	= foreign
-SUBDIRS 		= replace sic src
+SUBDIRS 		= src
 MAINTAINERCLEANFILES 	= Makefile.in aclocal.m4 configure sic/config-h.in \
 			sic/stamp-h.in $(AUX_DIST)
 

@@ -21,7 +21,6 @@
 
 #include <algorithm>
 
-#include <ipna/network/Socket.hpp>
 #include <ipna/capture/CapturePacketHandler.hpp>
 #include <ipna/parser/ParserFactory.hpp>
 #include <ipna/parser/PacketParser.hpp>

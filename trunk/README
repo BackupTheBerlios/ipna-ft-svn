@@ -1,8 +1,6 @@
-	ipnaft - foobar
+	ipnaft - IP Netflow-Accounting Flow Tools
 
-
-
-  Copyright (C) 2006 ich
+  Copyright (C) 2006 Alexander Petry <a_petry@informatik.uni-kl.de>
 
   ipnaft is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -20,4 +18,4 @@
 
 Comments are welcome.
 
-	- ich <ipna@localhost.localdomain>
+	- Alexander Petry <a_petry@informatik.uni-kl.de>

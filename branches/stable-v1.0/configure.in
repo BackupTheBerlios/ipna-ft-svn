@@ -1,0 +1,56 @@
+# @start 1
+# configure.in -- Process this file with autoconf to produce configure
+# @start 2
+# Copyright (C) 2000 Gary V. Vaughan
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+# @start 1
+AC_INIT(sic/eval.c)
+AC_CONFIG_AUX_DIR(config)
+AM_CONFIG_HEADER(sic/config.h:sic/config-h.in)
+AM_INIT_AUTOMAKE(sic, 0.5)
+
+AC_PROG_CC
+AC_PROG_RANLIB
+
+AC_HEADER_STDC
+AC_HEADER_SYS_WAIT
+AC_CHECK_HEADERS(errno.h strings.h unistd.h)
+
+AC_C_CONST
+AC_TYPE_PID_T
+AC_TYPE_SIZE_T
+
+SIC_WITH_READLINE
+
+SIC_VAR_SYS_ERRLIST
+SIC_VAR_SYS_SIGLIST
+
+AC_CHECK_FUNCS(bzero memset, break)
+AC_CHECK_FUNCS(calloc strchr strrchr)
+AC_REPLACE_FUNCS(basename strspn strcspn strerror strsignal waitpid)
+
+save_LIBS="$LIBS"
+test x"${with_readline-no}" != xno && LIBS="$LIBS -lreadline"
+AC_REPLACE_FUNCS(readline)
+AC_CHECK_FUNCS(add_history)
+LIBS="$save_LIBS"
+
+AC_SUBST(ac_aux_dir)
+
+AC_OUTPUT([Makefile replace/Makefile sic/Makefile src/Makefile],
+[test -z "$CONFIG_HEADERS" || echo timestamp > sic/stamp-h.in])
+# @end 1

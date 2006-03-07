@@ -87,7 +87,6 @@ CNFPv9PacketParser::parse(Packet::PacketPtr packet, PacketParser::RecordVectorPt
 	Template::TemplatePtr templ(new Template(templateId));
 
 	packet->startFrame(fieldCount * 2*sizeof(unsigned short));
-	//	for (unsigned int field = 0; field < fieldCount; field++) {
 	while (packet->dataLeftInFrame()) {
 	  unsigned short fieldType = packet->getNextShort();
 	  unsigned short fieldLength = packet->getNextShort();
@@ -123,8 +122,33 @@ CNFPv9PacketParser::parse(Packet::PacketPtr packet, PacketParser::RecordVectorPt
 	  for (unsigned int fieldIdx = 0; fieldIdx < templ->getNumFields(); ++fieldIdx) {
 	    unsigned int fId = templ->getFieldId(fieldIdx);
 	    unsigned int fLen= templ->getFieldLength(fieldIdx);
-
-	    Field::FieldPtr field(new Field(fId,packet->getCurrentBytes(),fLen));
+	    Field::FieldPtr field;
+	    
+	    // TODO: make this configurable:
+	    switch (fId) {
+	    case 8:
+	    case 12:
+	    case 15:
+	    case 18:
+	    case 27:
+	    case 28:
+	    case 62:
+	    case 63:
+	      field = Field::FieldPtr(new IPField(fId,packet->getCurrentBytes(),fLen));
+	      break;
+	    case 56:
+	    case 57:
+	    case 80:
+	    case 81:
+	      field = Field::FieldPtr(new MACField(fId,packet->getCurrentBytes(),fLen));
+	      break;
+	    case 82:
+	    case 83:
+	      field = Field::FieldPtr(new StringField(fId,packet->getCurrentBytes(),fLen));
+	      break;
+	    default:
+	      field = Field::FieldPtr(new Field(fId,packet->getCurrentBytes(),fLen));
+	    }
 	    r->add(field);
 	    packet->moveCursor(fLen);
 	  }

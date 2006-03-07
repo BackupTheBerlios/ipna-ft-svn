@@ -18,13 +18,24 @@
 #include <ipna/parser/Field.hpp>
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
+
+#include <QHostAddress>
 
 using namespace std;
 using namespace ipna::parser;
 
 Field::Field(Field::FieldId id, const char* bytes, size_t numBytes)
-  : _id(id), _numBytes(numBytes) {
-  memcpy(_bytes,bytes,numBytes);
+  : _id(id), _numBytes(numBytes == 0 ? 1 : numBytes) {
+  _bytes = new char[_numBytes];
+  memcpy(_bytes,bytes,_numBytes);
+}
+
+Field::~Field() {
+  if (NULL != _bytes) {
+    delete [] _bytes;
+    _bytes = NULL;
+  }
 }
 
 std::string
@@ -40,36 +51,48 @@ Field::asUInt() const {
 
   switch (_numBytes) {
   case 1:
-    return (unsigned int)(*_bytes);
+    return (unsigned int)(_bytes[0] & 0xff);
   case 2:
-    return ntohs(*(unsigned short*)_bytes);
+    return ntohs(*(unsigned short*)_bytes & 0xffff);
   case 4:
     return ntohl(*(unsigned int*)_bytes);
   default:
-    assert(false);
-  }
-}
-
-std::string
-Field::asIp() const {
-  if (4 == _numBytes) {
-    // ipv4
-    stringstream s;
-    for (unsigned int byte = 0; byte < _numBytes; byte++) {
-      unsigned int b = (unsigned char)(_bytes[byte]);
-      s << b;
-      if (byte < _numBytes-1) s << ".";
-    }
-    return s.str();
-  } else if (16 == _numBytes) {
-    // ipv6
-    return "not yet implemented";
-  } else {
-    return "not an ip";
+    throw std::runtime_error("cannot convert to an int longer than 4 bytes");
   }
 }
 
 std::ostream&
 operator<<(std::ostream& os, const Field& field) {
   return os << field.toString();
+}
+
+std::string
+IPField::toString() const {
+  if (4 == _numBytes) {
+    return QHostAddress(asUInt()).toString().toStdString();
+  } else if (16 == _numBytes) {
+    return QHostAddress(_bytes).toString().toStdString();
+  } else {
+    throw std::runtime_error("no ip address");
+  }
+}
+
+std::string
+MACField::toString() const {
+  if (6 == _numBytes) {
+    std::stringstream sstr;
+    sstr << std::hex;
+    for (std::size_t i = 0; i < _numBytes - 1; i++) {
+      sstr << _bytes[i] << ":";
+    }
+    sstr << _bytes[_numBytes-1];
+    return sstr.str();
+  } else {
+    throw std::runtime_error("no mac address");
+  }
+}
+
+std::string
+StringField::toString() const {
+  return std::string(_bytes);
 }

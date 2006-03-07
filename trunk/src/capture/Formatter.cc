@@ -19,49 +19,35 @@
 */
 
 #include <ipna/capture/Formatter.hpp>
+#include <stdexcept>
 
 using namespace ipna;
 using namespace ipna::capture;
 
-Formatter::Formatter() {
-  _columns.push_back(std::make_pair<unsigned int, EntryType>(10, NUMBER));
-  _columns.push_back(std::make_pair<unsigned int, EntryType>(8,  IP));
-  _columns.push_back(std::make_pair<unsigned int, EntryType>(9,  NUMBER));
-  _columns.push_back(std::make_pair<unsigned int, EntryType>(14, NUMBER));
-  _columns.push_back(std::make_pair<unsigned int, EntryType>(12, IP));
-  _columns.push_back(std::make_pair<unsigned int, EntryType>(13, NUMBER));
-  _columns.push_back(std::make_pair<unsigned int, EntryType>(4,  NUMBER));
-  _columns.push_back(std::make_pair<unsigned int, EntryType>(7,  NUMBER));
-  _columns.push_back(std::make_pair<unsigned int, EntryType>(11, NUMBER));
-  _columns.push_back(std::make_pair<unsigned int, EntryType>(2,  NUMBER));
-  _columns.push_back(std::make_pair<unsigned int, EntryType>(1,  NUMBER));
-}
-
 std::ostream&
 Formatter::format(ipna::parser::Record::RecordPtr record, std::ostream& os) {
-  os
-    << record->tstamp() << '\t'
-    << record->engineId() << '\t';
-  
-  for (std::vector<std::pair<unsigned int, EntryType> >::iterator it = _columns.begin();
+  for (std::list<int>::iterator it = _columns.begin();
        it != _columns.end();
        it++) {
-    unsigned int fieldId = it->first;
-    EntryType entryType = it->second;
+    int fieldId = *it;
 
-    if (record->has(fieldId)) {
-      switch (entryType) {
-      case NUMBER:
-	os << record->get(fieldId)->asUInt();
+    if (fieldId < 0) {
+      switch (fieldId) {
+      case -1:
+	os << record->tstamp();
 	break;
-      case IP:
-	os << record->get(fieldId)->asIp();
+      case -2:
+	os << record->engineId();
 	break;
       default:
-	assert(false);
+	throw std::out_of_range("");
       }
     } else {
-      os << (unsigned int)0;
+      if (record->has(fieldId)) {
+	os << record->get(fieldId)->toString();
+      } else {
+	os << (unsigned int)0;
+      }
     }
 
     os << '\t';
@@ -70,3 +56,10 @@ Formatter::format(ipna::parser::Record::RecordPtr record, std::ostream& os) {
   os << std::endl;
   return os;
 }
+
+ipna::capture::Formatter&
+operator<<(ipna::capture::Formatter& f, int field) {
+  f.addField(field);
+  return f;
+}
+

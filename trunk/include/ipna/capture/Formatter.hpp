@@ -18,12 +18,11 @@
   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-#ifndef FORMATTER_HPP
-#define FORMATTER_HPP
-
+#ifndef _FORMATTER_HPP
+#define _FORMATTER_HPP 1
 
 #include <ostream>
-#include <vector>
+#include <list>
 #include <utility>
 #include <boost/shared_ptr.hpp>
 #include <ipna/parser/Record.hpp>
@@ -35,19 +34,29 @@ namespace ipna {
       typedef boost::shared_ptr<Formatter> FormatterPtr;
 
       enum EntryType { NUMBER, IP, MAC };
-      
-      Formatter();
+
+      // add a format object as parameter...
+      explicit Formatter() {}
       virtual ~Formatter() {}
 
       // these functions may be used to group records in some way
       virtual void startRecordSet() {}
       virtual void endRecordSet() {}
-      
+
+      inline void addField(int field) {
+	_columns.push_back(field);
+      }
+      inline void clear() {
+	_columns.clear();
+      }
+
       std::ostream& format(ipna::parser::Record::RecordPtr record, std::ostream& os);
-    private:
-      std::vector<std::pair<unsigned int, EntryType> > _columns;
+    protected:
+      std::list<int> _columns;
     };
   } // capture
 } // ipna
+
+ipna::capture::Formatter& operator<<(ipna::capture::Formatter& f, int field);
 
 #endif // FORMATTER_HPP

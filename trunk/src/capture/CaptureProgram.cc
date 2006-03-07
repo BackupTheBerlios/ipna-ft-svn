@@ -23,6 +23,10 @@
 #include <ipna/capture/FileRecordWriter.hpp>
 #include <ipna/network/HostPort.hpp>
 
+#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/predicate.hpp>
+#include <boost/algorithm/string/classification.hpp>
+
 using namespace ipna;
 using namespace ipna::capture;
 
@@ -49,7 +53,24 @@ CaptureProgram::CaptureProgram(const std::string& name)
        " 23: \tdo a hourly file change\n"
        " 95: \tdo a file change every 15 minutes"
        )
-      ("queue-size,Q", po::value<unsigned int>()->default_value(1024), "the number of records hold in memory before writing them")
+      ("format,f", po::value<std::string>()->default_value("-1,-2,10,8,9,14,12,13,4,7,11,2,1"),
+       "The export format to be used as a comma separated list of field ids:\n"
+       "  some examples:\n"
+       "     -2: \tengine id\n"
+       "     -1: \ttime stamp\n"
+       "      1: \toctets in flow\n"
+       "      2: \tinput packets\n"
+       "      4: \tprotocol\n"
+       "      7: \tsource port\n"
+       "      8: \tipv4 source\n"
+       "      9: \tsource netmask\n"
+       "     10: \tinput snmp\n"
+       "     11: \tdestination port\n"
+       "     12: \tipv4 destination\n"
+       "     13: \tdestination netmask\n"
+       "     14: \toutput snmp\n"
+       )
+      ("queue-size,Q", po::value<unsigned int>()->default_value(1024), "The number of records hold in memory before writing them")
       ;
   } catch (po::error & ex) {
     LOG_ERROR(ex.what());
@@ -80,6 +101,22 @@ CaptureProgram::initialize(int argc, char **argv) {
 
   _listener  = boost::shared_ptr<network::Listener>(new network::Listener(listenSocket));
   _formatter = boost::shared_ptr<capture::Formatter>(new capture::Formatter());
+
+  // refactor this to a Format class or so
+  std::vector<std::string> formatFields;
+  boost::split(formatFields, getArgumentMap()["format"].as<std::string>(), boost::algorithm::is_any_of(","));
+  for (std::vector<std::string>::const_iterator it = formatFields.begin(); it != formatFields.end(); it++) {
+    int fieldId;
+    std::stringstream sstr(*it);
+    sstr >> fieldId;
+    if (sstr.bad()) {
+      LOG_ERROR("illegal format given: not a field id: " << *it);
+      exit(1);
+    }
+
+    _formatter->addField(fieldId);
+  }
+      
   unsigned int rotations = getArgumentMap()["rotations"].as<unsigned int>();
   if (rotations > 0) {
     std::string workDir = getArgumentMap()["workdir"].as<std::string>();

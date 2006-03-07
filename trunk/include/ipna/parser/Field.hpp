@@ -37,19 +37,43 @@ namespace ipna {
       typedef boost::shared_ptr<Field> FieldPtr;
       
       Field(FieldId id, const char* bytes, size_t numBytes);
-      virtual ~Field() {}
+      virtual ~Field();
       
       virtual std::string toString() const;
       inline size_t getId() const { return _id; }
 
       unsigned int asUInt() const;
       std::string asIp() const;
-    private:
-      char _bytes[16];
+    protected:
+      char *_bytes;
       size_t _numBytes;
       FieldId _id;
     };
 
+    class IPField : public Field {
+    public:
+      IPField(Field::FieldId id, const char* b, size_t num) : Field(id,b,num) {}
+      ~IPField() {}
+      
+      virtual std::string toString() const;
+    };
+
+    class MACField : public Field {
+    public:
+      MACField(Field::FieldId id, const char* b, size_t num) : Field(id,b,num) {}
+      ~MACField() {}
+
+      virtual std::string toString() const;
+    };
+
+    class StringField : public Field {
+    public:
+      StringField(Field::FieldId id, const char* b, size_t num) : Field(id,b,num) {}
+      ~StringField() {}
+
+      virtual std::string toString() const;
+    };
+    
     std::ostream& operator<<(std::ostream&, const Field&);
   }
 }

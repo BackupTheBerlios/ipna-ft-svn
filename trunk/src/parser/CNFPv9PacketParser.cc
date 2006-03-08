@@ -64,7 +64,7 @@ CNFPv9PacketParser::parse(Packet::PacketPtr packet, PacketParser::RecordVectorPt
     // get the flow-set id
     const unsigned int fsid = packet->getNextShort();
     const unsigned int length = packet->getNextShort();
-    LOG_DEBUG("fset id:" << fsid << " length:"<< length);
+    logger->debug() << "fset id:" << fsid << " length:"<< length << std::endl;
 
     // start a new reading frame within the packet of length 'length'
     // but start it at the point where we have read the id and length fields
@@ -74,7 +74,7 @@ CNFPv9PacketParser::parse(Packet::PacketPtr packet, PacketParser::RecordVectorPt
     
     if (0 == fsid) {
       recordsRemaining--;
-      LOG_DEBUG("got a template fs id:"<< fsid << " remaining:" << recordsRemaining);
+      logger->debug() << "got a template fs id:"<< fsid << " remaining:" << recordsRemaining << std::endl;
       const size_t entryLength = sizeof(unsigned short);
 
       // read all template definitions as long as there are enough bytes left
@@ -82,7 +82,7 @@ CNFPv9PacketParser::parse(Packet::PacketPtr packet, PacketParser::RecordVectorPt
       while (packet->dataLeftInFrame() > (2*entryLength)) {
 	unsigned short templateId = packet->getNextShort();
 	unsigned short fieldCount = packet->getNextShort();
-	LOG_DEBUG("tid:" << templateId << " fcount:" << fieldCount);
+	logger->debug() << "tid:" << templateId << " fcount:" << fieldCount << std::endl;
 
 	Template::TemplatePtr templ(new Template(templateId));
 
@@ -91,22 +91,22 @@ CNFPv9PacketParser::parse(Packet::PacketPtr packet, PacketParser::RecordVectorPt
 	  unsigned short fieldType = packet->getNextShort();
 	  unsigned short fieldLength = packet->getNextShort();
 	  templ->addField(fieldType,fieldLength);
-	  LOG_DEBUG("field:"<<fieldType<<" length:"<<fieldLength);
+	  logger->debug() << "field:"<<fieldType<<" length:"<<fieldLength << std::endl;
 	}
 	packet->endFrame();
 
 	templ->update();
 	getTemplateManager(engine)->put(templ);
       }
-      LOG_DEBUG("pad:" << packet->dataLeftInFrame());
+      logger->debug() << "pad:" << packet->dataLeftInFrame() << std::endl;
     } else if (1 == fsid) {
-      LOG_DEBUG("got an option template, skipping");
+      logger->debug() << "got an option template, skipping" << std::endl;
       // got an options template
       packet->skipFrame();
     } else {
       // got a data flow set
       if (getTemplateManager(engine)->isKnown(fsid) && getTemplateManager(engine)->get(fsid)->getTotalLength() > 0) {
-	LOG_DEBUG("got a known data flow set:" << fsid);
+	logger->debug() << "got a known data flow set:" << fsid << std::endl;
 	const size_t entryLength = sizeof(unsigned short);
 
 	Template::TemplatePtr templ = getTemplateManager(engine)->get(fsid);
@@ -115,7 +115,6 @@ CNFPv9PacketParser::parse(Packet::PacketPtr packet, PacketParser::RecordVectorPt
 	// to read them.
 	while (packet->dataLeftInFrame() >= templ->getTotalLength()) {
 	  recordsRemaining--;
-	  //	  LOG_DEBUG("a new record of size:" << templ->getTotalLength() << " begins, remaining records:" << recordsRemaining);
 
 	  packet->startFrame(templ->getTotalLength());
 	  Record::RecordPtr r(new Record(fsid, ntohl(header.tstamp), engine));
@@ -157,7 +156,7 @@ CNFPv9PacketParser::parse(Packet::PacketPtr packet, PacketParser::RecordVectorPt
 	  records->push_back(r);
 	}
       } else {
-	LOG_DEBUG("got an unknown data flow set:" << fsid);
+	logger->debug() << "got an unknown data flow set:" << fsid << std::endl;
       }
       packet->skipFrame();
     }
@@ -165,7 +164,7 @@ CNFPv9PacketParser::parse(Packet::PacketPtr packet, PacketParser::RecordVectorPt
     packet->endFrame();
   }
 
-  LOG_DEBUG(packet->getCurrentPosition() << "/" << packet->getLength() << " bytes read");
+  logger->debug() << packet->getCurrentPosition() << "/" << packet->getLength() << " bytes read" << std::endl;
   
   return records->size() - recordsStartSize;
 }

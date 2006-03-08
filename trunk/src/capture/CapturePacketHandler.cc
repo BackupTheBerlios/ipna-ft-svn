@@ -60,7 +60,7 @@ CapturePacketHandler::handlePacket(ipna::network::Packet::PacketPtr packet) {
 
   size_t seq = parser->getSequenceNumber();
   size_t numNewRecords = parser->parse(packet, records);
-  LOG_DEBUG("got " << numNewRecords << " new records");
+  logger->debug() << "got " << numNewRecords << " new records" << std::endl;
   if (records->size() > _queueSize) {
     sort(records->begin(), records->end(), Record::compare_lt);
 
@@ -71,7 +71,7 @@ CapturePacketHandler::handlePacket(ipna::network::Packet::PacketPtr packet) {
   SequenceNumberChecker::SequenceError seq_err =
     sequenceChecker->check(seq);
   if (seq_err == SequenceNumberChecker::SEQ_MISSED) {
-    LOG_WARN("missed " << (int)(sequenceChecker->missed()) << " packet(s)");
+    logger->warn() << "missed " << (int)(sequenceChecker->missed()) << " packet(s)" << std::endl;
   }
 
   return true;

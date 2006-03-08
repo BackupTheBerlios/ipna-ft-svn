@@ -25,24 +25,25 @@
 using namespace ipna;
 using namespace std;
 
-typedef map<string, boost::shared_ptr<Logger> > LoggerMap;
-
-LoggerMap Logger::loggerMap;
-//Logger::LoggerPtr Logger::_root = Logger::newLogger("root", Logger::FATAL);
-
 char* Logger::priorityNameMap[] = { "FATAL", "ERROR", "WARN", "INFO", "DEBUG", "UNKNOWN" };
 
 Logger::Logger(const string& name, Logger::PriorityLevel l)
-  : name(name), level(l){
+  : name(name), level(l), dev_null("/dev/null") {
   stream = &clog;
 }
 
 Logger::~Logger() {}
 
+Logger::LoggerMap&
+Logger::getLoggerMap() {
+  static LoggerMap loggerMap;
+  return loggerMap;
+}
+
 Logger::LoggerPtr
 Logger::getLogger(const std::string& name) {
-  LoggerMap::iterator it = loggerMap.find(name);
-  if (it != loggerMap.end()) {
+  LoggerMap::iterator it = getLoggerMap().find(name);
+  if (it != getLoggerMap().end()) {
     return it->second;
   } else {
     return newLogger(name,getRootLogger()->getPriority());
@@ -52,15 +53,15 @@ Logger::getLogger(const std::string& name) {
 Logger::LoggerPtr
 Logger::newLogger(const std::string& name, PriorityLevel prio) {
   LoggerPtr logger(new Logger(name,prio));
-  loggerMap.insert(make_pair<string,boost::shared_ptr<Logger> >(name,logger));
+  getLoggerMap().insert(make_pair<string,boost::shared_ptr<Logger> >(name,logger));
   return logger;
 }
 
 Logger::LoggerPtr
 Logger::getRootLogger() {
   string name = "root";
-  LoggerMap::iterator it = loggerMap.find(name);
-  if (it != loggerMap.end()) {
+  LoggerMap::iterator it = getLoggerMap().find(name);
+  if (it != getLoggerMap().end()) {
     return it->second;
   } else {
     return newLogger(name, WARN);
@@ -79,12 +80,21 @@ Logger::log(PriorityLevel logLevel, const string& msg ) {
   }
 }
 
+ostream&
+Logger::log(PriorityLevel logLevel) {
+  if (isPriorityLevelEnabled(logLevel) && stream != NULL) {
+    return *stream << "[" << time(NULL) << "]" << priorityNameMap[logLevel] << " - " << getName() << ": ";
+  } else {
+    return dev_null;
+  }
+}
+
 void
 Logger::setPriority(Logger::PriorityLevel prio) {
   LoggerPtr root = getRootLogger();
   level = prio;
   if (this == root.get()) {
-    for (LoggerMap::iterator it = loggerMap.begin(); it != loggerMap.end(); it++) {
+    for (LoggerMap::iterator it = getLoggerMap().begin(); it != getLoggerMap().end(); it++) {
       if (it->second.get() != this) {
 	it->second->setPriority(prio);
       }

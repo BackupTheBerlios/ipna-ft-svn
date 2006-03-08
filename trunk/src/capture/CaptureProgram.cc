@@ -73,7 +73,7 @@ CaptureProgram::CaptureProgram(const std::string& name)
       ("queue-size,Q", po::value<unsigned int>()->default_value(1024), "The number of records hold in memory before writing them")
       ;
   } catch (po::error & ex) {
-    LOG_ERROR(ex.what());
+    logger->error() << ex.what() << std::endl;
     exit(1);
   }
 }
@@ -83,19 +83,18 @@ CaptureProgram::initialize(int argc, char **argv) {
   IPNAProgram::initialize(argc,argv);
 
   if (!isSet(("listen"))) {
-    LOG_ERROR("no ip/port pair specified to listen on!");
-    std::cerr << getOptions() << std::endl;
+    logger->error() << "no ip/port pair specified to listen on!" << std::endl;
     exit(1);
   }
 
   network::HostPort listenOn(getArgumentMap()["listen"].as<std::string>(), isSet("ipv6"));
-  LOG_DEBUG("listening on: [" << listenOn.host.toString().toStdString() << "]:" << listenOn.port);
+  logger->debug() << "listening on: [" << listenOn.host.toString().toStdString() << "]:" << listenOn.port << std::endl;
 
   typedef boost::shared_ptr<QUdpSocket> SocketPtr;
   SocketPtr listenSocket;
   listenSocket = SocketPtr(new QUdpSocket());
   if(! listenSocket->bind(listenOn.host, listenOn.port)) {
-    LOG_ERROR("could not bind to listen-socket: " << listenSocket->errorString().toStdString());
+    logger->error() << "could not bind to listen-socket: " << listenSocket->errorString().toStdString() << std::endl;
     exit(3);
   }
 
@@ -110,7 +109,7 @@ CaptureProgram::initialize(int argc, char **argv) {
     std::stringstream sstr(*it);
     sstr >> fieldId;
     if (sstr.bad()) {
-      LOG_ERROR("illegal format given: not a field id: " << *it);
+      logger->error() << "illegal format given: not a field id: " << *it << std::endl;
       exit(1);
     }
 
@@ -122,8 +121,7 @@ CaptureProgram::initialize(int argc, char **argv) {
     std::string workDir = getArgumentMap()["workdir"].as<std::string>();
     int nesting = getArgumentMap()["nesting"].as<int>();
     if (nesting < -3 || nesting > 3) {
-      LOG_ERROR("unknown nesting level: " << nesting << "!");
-      std::cerr << getOptions() << std::endl;
+      logger->error() << "unknown nesting level: " << nesting << "!" << std::endl;
       exit(1);
     }
     _writer  = boost::shared_ptr<capture::FileRecordWriter>(new capture::FileRecordWriter(_formatter,workDir,nesting,rotations));

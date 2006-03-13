@@ -8,7 +8,7 @@ LDFLAGS=-L.
 LDLIBS=-lboost_program_options -lboost_filesystem -lQtCore -lQtNetwork #-lipnaftcore
 CXXFLAGS=-O3 -fPIC -g -I../include -I/usr/include/qt4 -I/usr/include/qt4/QtCore -I/usr/include/qt4/QtNetwork
 
-PREFIX=/home/ipna
+PREFIX=$(HOME)
 
 SRCS=network/Listener.cc network/SequenceNumberChecker.cc network/Packet.cc network/HostPort.cc IPNAProgram.cc Logger.cc
 CORE_HDRS=$(addprefix $(INCLUDE_DIR), $(SRCS:.cc=.hpp))
@@ -87,6 +87,7 @@ $(FANOUT_BIN) : $(FANOUT_OBJS)
 $(CAPTURE_BIN): $(CAPTURE_OBJS)
 
 install: $(BINS)
+	mkdir -p $(PREFIX)/bin
 	cp -p $(BINS) $(PREFIX)/bin
 
 clean:

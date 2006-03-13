@@ -83,7 +83,7 @@ Logger::log(PriorityLevel logLevel, const string& msg ) {
 ostream&
 Logger::log(PriorityLevel logLevel) {
   if (isPriorityLevelEnabled(logLevel) && stream != NULL) {
-    return *stream << "[" << time(NULL) << "]" << priorityNameMap[logLevel] << " - " << getName() << ": ";
+    return *stream << "[" << time(NULL) << "] " << priorityNameMap[logLevel] << " - " << getName() << ": ";
   } else {
     return dev_null;
   }

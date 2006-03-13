@@ -28,9 +28,9 @@ MAINTAINERCLEANFILES 	= Makefile.in aclocal.m4 configure sic/config-h.in \
 			sic/stamp-h.in $(AUX_DIST)
 
 ACLOCAL			= aclocal -I $(auxdir)
-
 dist-hook:
 	(cd $(distdir) && mkdir $(auxdir))
 	for file in $(AUX_DIST) $(AUX_DIST_EXTRA); do \
 	  cp $$file $(distdir)/$$file; \
 	done
+

@@ -25,7 +25,7 @@ FANOUT_BIN=ipna-ft-fanout
 FANOUT_LIB_OBJS=$(FANOUT_SRCS:.cc=.o)
 FANOUT_LIB=libipnaftfanout.so
 
-PARSER_SRCS=parser/ParserFactory.cc parser/CNFPv9PacketParser.cc parser/Field.cc
+PARSER_SRCS=parser/ParserFactory.cc parser/CNFPv9PacketParser.cc parser/CNFPv5PacketParser.cc parser/Field.cc
 PARSER_HDRS=$(addprefix $(INCLUDE_DIR), $(PARSER_SRCS:.cc=.hpp))
 PARSER_OBJS=$(PARSER_SRCS:.cc=.o)
 

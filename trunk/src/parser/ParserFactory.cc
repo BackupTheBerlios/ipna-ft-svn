@@ -19,6 +19,7 @@
 #include <ipna/parser/ParserFactory.hpp>
 #include <ipna/parser/PacketParser.hpp>
 #include <ipna/parser/CNFPv9PacketParser.hpp>
+#include <ipna/parser/CNFPv5PacketParser.hpp>
 #include <utility>
 
 using namespace ipna;
@@ -68,13 +69,23 @@ ParserFactory::newParser(NetflowVersion version) const {
   
   switch (version) {
   case CNFPv1:
+    assert(false);
+    break;
   case CNFPv5:
+    p = boost::shared_ptr<PacketParser>(new CNFPv5PacketParser());
+    break;
   case CNFPv7:
+    assert(false);
+    break;
   case CNFPv8:
+    assert(false);
+    break;
   case CNFPv9:
     //    std::cerr << "returning new v9 parser" << std::endl;
     p = boost::shared_ptr<PacketParser>(new CNFPv9PacketParser());
+    break;
   default:
+    assert(false);
     break;
   }
   

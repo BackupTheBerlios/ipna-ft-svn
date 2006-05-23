@@ -125,24 +125,24 @@ CNFPv9PacketParser::parse(Packet::PacketPtr packet, PacketParser::RecordVectorPt
 	    
 	    // TODO: make this configurable:
 	    switch (fId) {
-	    case 8:
-	    case 12:
-	    case 15:
-	    case 18:
-	    case 27:
-	    case 28:
-	    case 62:
-	    case 63:
+	    case IPV4_SRC_ADDR:
+	    case IPV4_DST_ADDR:
+	    case IPV4_NEXT_HOP:
+	    case BGP_IPV4_NEXT_HOP:
+	    case IPV6_SRC_ADDR:
+	    case IPV6_DST_ADDR:
+	    case IPV6_NEXT_HOP:
+	    case BGP_IPV6_NEXT_HOP:
 	      field = Field::FieldPtr(new IPField(fId,packet->getCurrentBytes(),fLen));
 	      break;
-	    case 56:
-	    case 57:
-	    case 80:
-	    case 81:
+	    case IN_SRC_MAC:
+	    case OUT_DST_MAC:
+	    case IN_DST_MAC:
+	    case OUT_SRC_MAC:
 	      field = Field::FieldPtr(new MACField(fId,packet->getCurrentBytes(),fLen));
 	      break;
-	    case 82:
-	    case 83:
+	    case IF_NAME:
+	    case IF_DESC:
 	      field = Field::FieldPtr(new StringField(fId,packet->getCurrentBytes(),fLen));
 	      break;
 	    default:

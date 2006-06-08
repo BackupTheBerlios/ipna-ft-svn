@@ -130,6 +130,29 @@ namespace ipna {
       unsigned short padding;
     };
 
+    struct cnfp_v5_pkt {
+      uint32_t src;
+      uint32_t dst;
+      uint32_t nexthop;
+      uint16_t input_if;
+      uint16_t output_if;
+      uint32_t packets;
+      uint32_t octets;
+      uint32_t first;
+      uint32_t last;
+      uint16_t srcport;
+      uint16_t dstport;
+      char pad1;
+      uint8_t flags;
+      uint8_t prot;
+      uint8_t tos;
+      uint16_t srcas;
+      uint16_t dstas;
+      uint8_t src_mask;
+      uint8_t dst_mask;
+      uint16_t pad2;
+    };
+
     struct cnfp_v7_hdr {
       struct cnfp_common_hdr common;
       unsigned int uptime;

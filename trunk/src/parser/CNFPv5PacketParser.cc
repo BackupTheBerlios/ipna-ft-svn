@@ -30,7 +30,7 @@ ipna::Logger::LoggerPtr CNFPv5PacketParser::logger = ipna::Logger::getLogger("ip
 CNFPv5PacketParser::CNFPv5PacketParser()
   : PacketParser() {
   Template::TemplatePtr tmpl(new Template(v5TemplateId));
-
+  logger->setPriority(Logger::DEBUG);
   // add v5 format
   tmpl->addField(IPV4_SRC_ADDR, 4);
   tmpl->addField(IPV4_DST_ADDR, 4);
@@ -51,6 +51,7 @@ CNFPv5PacketParser::CNFPv5PacketParser()
   tmpl->addField(DST_AS, 2);
   tmpl->addField(SRC_MASK, 1);
   tmpl->addField(DST_MASK, 1);
+  tmpl->addField(43, 2);
   tmpl->update();
   
   getTemplateManager(0)->put(tmpl);
@@ -82,11 +83,62 @@ CNFPv5PacketParser::getSequenceNumber() {
 
 size_t
 CNFPv5PacketParser::parse(Packet::PacketPtr packet, PacketParser::RecordVectorPtr records) {
+  const size_t recordsStartSize = records->size();
+  char* bytes = (char*)packet->getBytes();
+  cnfp_v5_hdr* _hdr = (cnfp_v5_hdr*)(bytes); bytes += sizeof(cnfp_v5_hdr);
+  uint32_t _count = ntohs(_hdr->common.count);
+
+  for (uint32_t i = 0; i < _count; ++i) {
+      cnfp_v5_pkt* _pkt = (cnfp_v5_pkt*)(bytes); bytes += sizeof(cnfp_v5_pkt);
+      Record::RecordPtr r(new Record(0, time(NULL), ntohl(_hdr->engine_id)));
+      Field::FieldPtr field;
+      field = Field::FieldPtr(new IPField((uint32_t)IPV4_SRC_ADDR, (char*)&_pkt->src, 4));
+      r->add(field);
+      field = Field::FieldPtr(new IPField((uint32_t)IPV4_DST_ADDR, (char*)&_pkt->dst, 4));
+      r->add(field);
+      field = Field::FieldPtr(new IPField((uint32_t)IPV4_NEXT_HOP, (char*)&_pkt->nexthop, 4));
+      r->add(field);
+      field = Field::FieldPtr(new IPField((uint32_t)IPV4_NEXT_HOP, (char*)&_pkt->nexthop, 4));
+      r->add(field);
+      field = Field::FieldPtr(new Field((uint32_t)INPUT_SNMP, (char*)&_pkt->input_if, 1));
+      r->add(field);
+      field = Field::FieldPtr(new Field((uint32_t)OUTPUT_SNMP, (char*)&_pkt->output_if, 1));
+      r->add(field);
+      field = Field::FieldPtr(new Field((uint32_t)IN_PKTS, (char*)&_pkt->packets, 4));
+      r->add(field);
+      field = Field::FieldPtr(new Field((uint32_t)IN_BYTES, (char*)&_pkt->octets, 4));
+      r->add(field);
+      field = Field::FieldPtr(new Field((uint32_t)FIRST_SWITCHED, (char*)&_pkt->first, 4));
+      r->add(field);
+      field = Field::FieldPtr(new Field((uint32_t)LAST_SWITCHED, (char*)&_pkt->last, 4));
+      r->add(field);
+      field = Field::FieldPtr(new Field((uint32_t)L4_SRC_PORT, (char*)&_pkt->srcport, 2));
+      r->add(field);
+      field = Field::FieldPtr(new Field((uint32_t)L4_DST_PORT, (char*)&_pkt->dstport, 2));
+      r->add(field);
+      field = Field::FieldPtr(new Field((uint32_t)TCP_FLAGS, (char*)&_pkt->flags, 1));
+      r->add(field);
+      field = Field::FieldPtr(new Field((uint32_t)PROTOCOL, (char*)&_pkt->prot, 1));
+      r->add(field);
+      field = Field::FieldPtr(new Field((uint32_t)SRC_TOS, (char*)&_pkt->tos, 1));
+      r->add(field);
+      field = Field::FieldPtr(new Field((uint32_t)SRC_AS, (char*)&_pkt->srcas, 2));
+      r->add(field);
+      field = Field::FieldPtr(new Field((uint32_t)DST_AS, (char*)&_pkt->dstas, 2));
+      r->add(field);
+      field = Field::FieldPtr(new Field((uint32_t)SRC_MASK, (char*)&_pkt->src_mask, 1));
+      r->add(field);
+      field = Field::FieldPtr(new Field((uint32_t)DST_MASK, (char*)&_pkt->src_mask, 1));
+      r->add(field);
+      records->push_back(r);
+   }
+
+#if 0
   header = (cnfp_v5_hdr*)packet->getCurrentBytes();
   packet->moveCursor(sizeof(cnfp_v5_hdr));
 
-  const size_t recordsStartSize = records->size();
   size_t numRecordsInPacket = ntohs(header->common.count);
+  logger->debug() << "reading " << numRecordsInPacket << " records" << std::endl;
   uint32_t engine = ntohl(header->engine_id);
 
   Template::TemplatePtr tmpl = getTemplateManager(0)->get(v5TemplateId);
@@ -101,6 +153,7 @@ CNFPv5PacketParser::parse(Packet::PacketPtr packet, PacketParser::RecordVectorPt
       uint32_t fLen = tmpl->getFieldLength(fieldIdx);
       Field::FieldPtr field;
       // TODO: make this configurable:
+      logger->debug() << "\treading field " << fId << " with len:" << fLen << std::endl;
       switch (fId) {
       case IPV4_SRC_ADDR:
       case IPV4_DST_ADDR:
@@ -127,6 +180,7 @@ CNFPv5PacketParser::parse(Packet::PacketPtr packet, PacketParser::RecordVectorPt
 
     records->push_back(r);
   }
+#endif
 
-  return 0;
+  return records->size() - recordsStartSize;
 }

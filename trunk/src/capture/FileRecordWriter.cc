@@ -43,8 +43,9 @@ FileRecordWriter::FileRecordWriter(Formatter::FormatterPtr formatter,
   : RecordWriter(formatter),
     _rotations(rotations),
     _workingDir(workingDir),
-    _fileFormat("ipna-ft-v09.%Y-%m-%d.%H%M%S") {
+    _fileFormat("ipna-ft-v09.%Y-%m-%d.%H%M%S%z") {
 
+  fs::path::default_name_check(fs::native);
   _nestingFormat = getNestingFormat(nesting);
   
   if (chdir(workingDir.c_str())) {
@@ -167,10 +168,14 @@ FileRecordWriter::openNewFile(time_t t) {
     exit(1);
   }
   
+  fs::path pth;
   try {
-    _file.open(fs::path(_workingDir) / fs::path(_curDir) / ("tmp-" + _fileName));
+     pth /= fs::path(_workingDir);
+     pth /= fs::path(_curDir);
+     pth /= fs::path("tmp-" + _fileName, fs::native);
+    _file.open(pth);
   } catch (...) {
-    LOG_ERROR("could not open '" << _fileName << "' for writing access...");
+    LOG_ERROR("could not open '" << pth.string() << "' for writing access...");
     exit(1);
   }
   

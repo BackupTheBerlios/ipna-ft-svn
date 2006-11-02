@@ -43,7 +43,7 @@ FileRecordWriter::FileRecordWriter(Formatter::FormatterPtr formatter,
   : RecordWriter(formatter),
     _rotations(rotations),
     _workingDir(workingDir),
-    _fileFormat("ipna-ft-v09.%Y-%m-%d.%H%M%S%z") {
+    _fileFormat("ipna-ft-v09.%Y-%m-%d.%H%M%S") {
 
   _nestingFormat = getNestingFormat(nesting);
   

@@ -19,6 +19,7 @@
 */
 
 #include <ipna/capture/Formatter.hpp>
+#include <sstream>
 #include <stdexcept>
 
 using namespace ipna;
@@ -26,40 +27,51 @@ using namespace ipna::capture;
 
 std::ostream&
 Formatter::format(ipna::parser::Record::RecordPtr record, std::ostream& os) {
-  for (std::list<int>::iterator it = _columns.begin();
-       it != _columns.end();
-       it++) {
-    int fieldId = *it;
+  for (std::vector<std::list<int> >::iterator col = _columns.begin();
+       col != _columns.end();
+       col++) {
 
-    if (fieldId < 0) {
-      switch (fieldId) {
-      case -1:
-	os << record->tstamp();
-	break;
-      case -2:
-	os << record->engineId();
-	break;
-      default:
-	throw std::out_of_range("");
-      }
-    } else {
-      if (record->has(fieldId)) {
-	os << record->get(fieldId)->toString();
+    bool found = false;
+    // check if any of the fields in the current column are in the record
+    for (std::list<int>::iterator field = col->begin(); field != col->end() && !found; field++) {
+      int id = *field;
+	
+      if (id < 0) {
+	switch (id) {
+	case -1:
+	  os << record->tstamp();
+	  found = true;
+	  break;
+	case -2:
+	  os << record->engineId();
+	  found = true;
+	  break;
+	default:
+	  throw std::out_of_range("");
+	}
       } else {
-	os << (unsigned int)0;
+	if (record->has(id)) {
+	  os << record->get(id)->toString();
+	  found = true;
+	} else {
+	  found = false;
+	}
       }
     }
 
+    if (!found) {
+      std::stringstream sstr;
+      sstr << "the processed record did not have any of the given fields: ";
+      for (std::list<int>::iterator field = col->begin(); field != col->end(); field++) {
+	sstr << " " << *field;
+      }
+      throw std::runtime_error(sstr.str());
+    }
+    
     os << '\t';
   }
 
   os << std::endl;
   return os;
-}
-
-ipna::capture::Formatter&
-operator<<(ipna::capture::Formatter& f, int field) {
-  f.addField(field);
-  return f;
 }
 

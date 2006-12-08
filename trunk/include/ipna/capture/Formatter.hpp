@@ -23,9 +23,11 @@
 
 #include <ostream>
 #include <list>
+#include <vector>
 #include <utility>
 #include <boost/shared_ptr.hpp>
 #include <ipna/parser/Record.hpp>
+#include <algorithm>
 
 namespace ipna {
   namespace capture {
@@ -43,20 +45,28 @@ namespace ipna {
       virtual void startRecordSet() {}
       virtual void endRecordSet() {}
 
-      inline void addField(int field) {
-	_columns.push_back(field);
+
+      inline bool hasColumnField(size_t column, int field) const {
+      	std::list<int>::const_iterator s = _columns[column].begin();
+      	std::list<int>::const_iterator e = _columns[column].end();
+	return std::find(s,e,field) != e;
+      }
+      inline void addFieldToColumn(size_t column, int field) {
+	_columns[column].push_back(field);
+      }
+      inline size_t addColumn() {
+        _columns.push_back(std::list<int>());
+	return _columns.size()-1;
       }
       inline void clear() {
 	_columns.clear();
       }
-
+      
       std::ostream& format(ipna::parser::Record::RecordPtr record, std::ostream& os);
     protected:
-      std::list<int> _columns;
+      std::vector<std::list<int> > _columns;
     };
   } // capture
 } // ipna
-
-ipna::capture::Formatter& operator<<(ipna::capture::Formatter& f, int field);
 
 #endif // FORMATTER_HPP

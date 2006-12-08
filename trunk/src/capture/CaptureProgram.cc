@@ -53,8 +53,8 @@ CaptureProgram::CaptureProgram(const std::string& name)
        " 23: \tdo a hourly file change\n"
        " 95: \tdo a file change every 15 minutes"
        )
-      ("format,f", po::value<std::string>()->default_value("-1,-2,10,8,9,14,12,13,4,7,11,2,1"),
-       "The export format to be used as a comma separated list of field ids:\n"
+      ("format,f", po::value<std::string>()->default_value("-1,-2,10,27|8,29|9,14,28|12,30|13,4,7,11,2,1"),
+       "The export format to be used as a comma separated list of a set of field ids (pipe | separated):\n"
        "  some examples:\n"
        "     -2: \tengine id\n"
        "     -1: \ttime stamp\n"
@@ -69,6 +69,11 @@ CaptureProgram::CaptureProgram(const std::string& name)
        "     12: \tipv4 destination\n"
        "     13: \tdestination netmask\n"
        "     14: \toutput snmp\n"
+       "     27: \tipv6 src address\n"
+       "     28: \tipv6 dst address\n"
+       "     29: \tipv6 src mask\n"
+       "     30: \tipv6 dst mask\n"
+       "example --format -1,-2,10,8|27,9|29,14,12|28,13|30\n"
        )
       ("queue-size,Q", po::value<unsigned int>()->default_value(1024), "The number of records hold in memory before writing them")
       ;
@@ -102,20 +107,33 @@ CaptureProgram::initialize(int argc, char **argv) {
   _formatter = boost::shared_ptr<capture::Formatter>(new capture::Formatter());
 
   // refactor this to a Format class or so
-  std::vector<std::string> formatFields;
-  boost::split(formatFields, getArgumentMap()["format"].as<std::string>(), boost::algorithm::is_any_of(","));
-  for (std::vector<std::string>::const_iterator it = formatFields.begin(); it != formatFields.end(); it++) {
-    int fieldId;
-    std::stringstream sstr(*it);
-    sstr >> fieldId;
-    if (sstr.bad()) {
-      logger->error() << "illegal format given: not a field id: " << *it << std::endl;
+  std::vector<std::string> columns;
+  boost::split(columns, getArgumentMap()["format"].as<std::string>(), boost::algorithm::is_any_of(","));
+  for (std::vector<std::string>::const_iterator it = columns.begin(); it != columns.end(); it++) {
+    std::vector<std::string> fields;
+    boost::split(fields, *it, boost::algorithm::is_any_of("|"));
+
+    if (fields.empty()) {
+      logger->error() << "illegal column definiton, at least one field required" << *it;
       exit(1);
     }
+    size_t col = _formatter->addColumn();
+    
+    for (std::vector<std::string>::const_iterator f = fields.begin(); f != fields.end(); f++) {
+      int fieldId;
+      std::stringstream sstr(*f);
+      sstr >> fieldId;
+      if (sstr.bad()) {
+	logger->error() << "illegal format given: not a field id: " << *f << std::endl;
+	exit(1);
+      } else {
+	logger->debug() << "added field " << fieldId << " to column " << col << std::endl;
+      }
 
-    _formatter->addField(fieldId);
+      _formatter->addFieldToColumn(col, fieldId);
+    }
   }
-      
+  
   unsigned int rotations = getArgumentMap()["rotations"].as<unsigned int>();
   if (rotations > 0) {
     std::string workDir = getArgumentMap()["workdir"].as<std::string>();

@@ -27,6 +27,8 @@ using namespace ipna::capture;
 
 std::ostream&
 Formatter::format(ipna::parser::Record::RecordPtr record, std::ostream& os) {
+  std::stringstream out;
+  
   for (std::vector<std::list<int> >::iterator col = _columns.begin();
        col != _columns.end();
        col++) {
@@ -39,11 +41,11 @@ Formatter::format(ipna::parser::Record::RecordPtr record, std::ostream& os) {
       if (id < 0) {
 	switch (id) {
 	case -1:
-	  os << record->tstamp();
+	  out << record->tstamp();
 	  found = true;
 	  break;
 	case -2:
-	  os << record->engineId();
+	  out << record->engineId();
 	  found = true;
 	  break;
 	default:
@@ -51,7 +53,7 @@ Formatter::format(ipna::parser::Record::RecordPtr record, std::ostream& os) {
 	}
       } else {
 	if (record->has(id)) {
-	  os << record->get(id)->toString();
+	  out << record->get(id)->toString();
 	  found = true;
 	} else {
 	  found = false;
@@ -68,10 +70,10 @@ Formatter::format(ipna::parser::Record::RecordPtr record, std::ostream& os) {
       throw std::runtime_error(sstr.str());
     }
     
-    os << '\t';
+    out << '\t';
   }
 
-  os << std::endl;
-  return os;
+  out << std::endl;
+  return os << out.str();
 }
 

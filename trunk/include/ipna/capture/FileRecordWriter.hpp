@@ -44,6 +44,7 @@ namespace ipna {
       void openNewFile(time_t start);
       void closeOldFile();
       void writeHeader();
+      void writeFooter();
       
       static ipna::Logger::LoggerPtr logger;
       

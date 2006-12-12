@@ -130,9 +130,18 @@ FileRecordWriter::writeHeader() {
 }
 
 void
+FileRecordWriter::writeFooter() {
+  if (_file.good()) {
+    time_t now = time(NULL);
+    _file << "# capture end:  \t" << asctime(localtime(&now));
+  }
+}
+
+void
 FileRecordWriter::closeOldFile() {
   // close and rename the old one
   if (_file.good()) {
+    writeFooter();
     _file.close();
   }    
 

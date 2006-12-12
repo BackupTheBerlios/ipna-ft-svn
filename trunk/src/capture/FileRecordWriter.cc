@@ -194,3 +194,13 @@ FileRecordWriter::write(Record::RecordPtr r) {
   // now call the super method
   RecordWriter::write(r);
 }
+
+void
+FileRecordWriter::notifyTimeout() {
+  // change the file, if it is time to
+  if (time(NULL) > _curBlockEnd) {
+    openNewFile(_curBlockEnd);
+  }
+
+  RecordWriter::notifyTimeout();
+}

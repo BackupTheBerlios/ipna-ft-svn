@@ -38,6 +38,7 @@ namespace ipna {
 
       virtual void write(ipna::parser::Record::RecordPtr record);
       virtual void write(ipna::parser::PacketParser::RecordVectorPtr records);
+      virtual void notifyTimeout() {}
 
       void setStream(std::ostream& os) {
 	_stream = &os;

@@ -36,6 +36,7 @@ namespace ipna {
       FileRecordWriter(Formatter::FormatterPtr formatter, const std::string& workingDir, int nesting, unsigned int rotations);
       virtual ~FileRecordWriter() { closeOldFile(); }
       virtual void write(ipna::parser::Record::RecordPtr r);
+      virtual void notifyTimeout();
     private:
       time_t getBlockEnd(time_t start);
       std::string getFormattedName(const std::string& fmt, time_t* t = NULL);

@@ -45,6 +45,7 @@ namespace ipna {
       CapturePacketHandler(RecordWriter::RecordWriterPtr writer, unsigned int queueSize = 1024);
       virtual ~CapturePacketHandler();
       virtual bool handlePacket(ipna::network::Packet::PacketPtr packet);
+      virtual bool handleTimeout();
     private:
       static ipna::Logger::LoggerPtr logger;
       boost::shared_ptr<ipna::network::SequenceNumberChecker> sequenceChecker;

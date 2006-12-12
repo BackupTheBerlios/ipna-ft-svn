@@ -30,6 +30,7 @@ namespace ipna {
     public:
       virtual ~PacketHandler() {}
       virtual bool handlePacket(Packet::PacketPtr packet) = 0;
+      virtual bool handleTimeout() { return true; }
     };
   }
 }

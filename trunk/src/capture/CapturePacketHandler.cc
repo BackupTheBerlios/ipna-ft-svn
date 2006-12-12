@@ -76,3 +76,10 @@ CapturePacketHandler::handlePacket(ipna::network::Packet::PacketPtr packet) {
 
   return true;
 }
+
+bool
+CapturePacketHandler::handleTimeout() {
+  // notify the writer
+  _recordWriter->notifyTimeout();
+  return true;
+}

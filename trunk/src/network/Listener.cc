@@ -62,6 +62,10 @@ Listener::start() {
   
   while (!isStopped()) {
     if (!_socket->hasPendingDatagrams()) {
+      for (HandlerIterator h = handler.begin(); h != handler.end(); h++) {
+	h->get()->handleTimeout();
+      }
+
       usleep(500);
       continue;
     }

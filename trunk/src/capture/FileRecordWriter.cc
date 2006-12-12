@@ -132,8 +132,8 @@ FileRecordWriter::writeHeader() {
 void
 FileRecordWriter::writeFooter() {
   if (_file.good()) {
-    time_t now = time(NULL);
-    _file << "# capture end:  \t" << asctime(localtime(&now));
+    time_t end = std::min(time(NULL), _curBlockEnd);
+    _file << "# capture end:  \t" << asctime(localtime(&end));
   }
 }
 

@@ -52,7 +52,8 @@ namespace ipna {
       unsigned int _rotations;
       std::string _workingDir;
       std::string _nestingFormat;
-      std::string _fileFormat; // default is: ipna-ft-v09.%Y-%m-%d.%H%M%S
+      std::string _fileFormat; // default is: ipna-ft-v09.%Y-%m-%d.%H%M%S%z
+      std::string _timeFormat;
       std::string _fileName;
       std::string _curDir;
       time_t _curBlockStart;

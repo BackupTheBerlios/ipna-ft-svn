@@ -43,7 +43,8 @@ FileRecordWriter::FileRecordWriter(Formatter::FormatterPtr formatter,
   : RecordWriter(formatter),
     _rotations(rotations),
     _workingDir(workingDir),
-    _fileFormat("ipna-ft-v09.%Y-%m-%d.%H%M%S%z") {
+    _fileFormat("ipna-ft-v09.%Y-%m-%d.%H%M%S%z"),
+    _timeFormat("%a, %d %b %Y %H:%M:%S %z") {
 
   fs::path::default_name_check(fs::native);
   _nestingFormat = getNestingFormat(nesting);
@@ -119,12 +120,18 @@ FileRecordWriter::getFormattedName(const std::string& fmt, time_t *t) {
 
 void
 FileRecordWriter::writeHeader() {
+  char timeString[128];
+  
   if (_file.good()) {
     _file << "#" << std::endl;
     _file << "# version:\t 0.2"   << std::endl;
     _file << "# capture host: \t" << QHostInfo::localHostName().toStdString() << std::endl;
-    _file << "# capture start:\t" << asctime(localtime(&_curBlockStart));
-    _file << "# capture end:  \t" << asctime(localtime(&_curBlockEnd));
+
+    strftime(timeString, 128, "%a, %d %b %Y %H:%M:%S %z", localtime(&_curBlockStart));
+    _file << "# capture start:\t" << timeString << std::endl;
+
+    strftime(timeString, 128, "%a, %d %b %Y %H:%M:%S %z", localtime(&_curBlockEnd));
+    _file << "# capture end:  \t" << timeString << std::endl;
     _file << "#" << std::endl;
   }
 }
@@ -133,7 +140,9 @@ void
 FileRecordWriter::writeFooter() {
   if (_file.good()) {
     time_t end = std::min(time(NULL), _curBlockEnd);
-    _file << "# capture end:  \t" << asctime(localtime(&end));
+    char timeString[128];
+    strftime(timeString, 128, "%a, %d %b %Y %H:%M:%S %z", localtime(&end));
+    _file << "# capture end:  \t" << timeString << std::endl;
   }
 }
 

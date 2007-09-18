@@ -44,7 +44,8 @@ FileRecordWriter::FileRecordWriter(Formatter::FormatterPtr formatter,
     _rotations(rotations),
     _workingDir(workingDir),
     _fileFormat("ipna-ft-v09.%Y-%m-%d.%H%M%S%z"),
-    _timeFormat("%a, %d %b %Y %H:%M:%S %z") {
+    _timeFormat("%a, %d %b %Y %H:%M:%S %z"),
+    _tmpPrefix(".tmp-") {
 
   fs::path::default_name_check(fs::native);
   _nestingFormat = getNestingFormat(nesting);
@@ -155,8 +156,8 @@ FileRecordWriter::closeOldFile() {
   }    
 
   try {
-    if (fs::exists(fs::path(_workingDir) / fs::path(_curDir) / ("tmp-" + _fileName))) {
-      fs::rename(fs::path(_workingDir) / fs::path(_curDir) / ("tmp-" + _fileName), fs::path(_workingDir) / fs::path(_curDir) / _fileName);
+    if (fs::exists(fs::path(_workingDir) / fs::path(_curDir) / (_tmpPrefix + _fileName))) {
+      fs::rename(fs::path(_workingDir) / fs::path(_curDir) / (_tmpPrefix + _fileName), fs::path(_workingDir) / fs::path(_curDir) / _fileName);
     }
   } catch (...) {
     LOG_ERROR("could not rename old file!");
@@ -190,7 +191,7 @@ FileRecordWriter::openNewFile(time_t t) {
   try {
      pth /= fs::path(_workingDir);
      pth /= fs::path(_curDir);
-     pth /= fs::path("tmp-" + _fileName, fs::native);
+     pth /= fs::path(_tmpPrefix + _fileName, fs::native);
     _file.open(pth);
   } catch (...) {
     LOG_ERROR("could not open '" << pth.string() << "' for writing access...");

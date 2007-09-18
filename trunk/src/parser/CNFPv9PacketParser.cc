@@ -68,7 +68,7 @@ CNFPv9PacketParser::parse(Packet::PacketPtr packet, PacketParser::RecordVectorPt
 
     // start a new reading frame within the packet of length 'length'
     // but start it at the point where we have read the id and length fields
-    packet->moveCursor(-2*(sizeof(unsigned short)));
+    packet->moveCursor((int)(-2*(sizeof(unsigned short))));
     packet->startFrame(length);
     packet->moveCursor( 2*(sizeof(unsigned short)));
     

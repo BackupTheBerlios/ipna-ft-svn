@@ -53,6 +53,7 @@ namespace ipna {
       std::string _workingDir;
       std::string _nestingFormat;
       std::string _fileFormat; // default is: ipna-ft-v09.%Y-%m-%d.%H%M%S%z
+      std::string _tmpPrefix;  // default is: .tmp-
       std::string _timeFormat;
       std::string _fileName;
       std::string _curDir;

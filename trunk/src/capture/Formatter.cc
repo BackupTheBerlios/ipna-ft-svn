@@ -21,9 +21,12 @@
 #include <ipna/capture/Formatter.hpp>
 #include <sstream>
 #include <stdexcept>
+#include <iomanip>
 
 using namespace ipna;
 using namespace ipna::capture;
+
+Logger::LoggerPtr Formatter::logger = Logger::getLogger("ipna.capture.Formatter");
 
 std::ostream&
 Formatter::format(ipna::parser::Record::RecordPtr record, std::ostream& os) {
@@ -41,11 +44,15 @@ Formatter::format(ipna::parser::Record::RecordPtr record, std::ostream& os) {
       if (id < 0) {
 	switch (id) {
 	case -1:
+	  out << std::setiosflags(std::ios::left);
 	  out << record->tstamp();
+	  out << std::resetiosflags(std::ios::left);
 	  found = true;
 	  break;
 	case -2:
+	  out << std::setiosflags(std::ios::left);
 	  out << record->engineId();
+	  out << std::resetiosflags(std::ios::left);
 	  found = true;
 	  break;
 	default:
@@ -53,8 +60,19 @@ Formatter::format(ipna::parser::Record::RecordPtr record, std::ostream& os) {
 	}
       } else {
 	if (record->has(id)) {
-	  out << record->get(id)->toString();
 	  found = true;
+	  try {
+	        out << std::setiosflags(std::ios::left);
+		size_t old_width =
+			out.width(record->get(id)->getMaximumWidth());
+	  	out << record->get(id)->toString();
+		out.width(old_width);
+	        out << std::resetiosflags(std::ios::left);
+	  } catch(...) {
+		LOG_WARN("field-id " << id << " of record could not be formatted!");
+	  	out << "X";
+	        out << std::resetiosflags(std::ios::left);
+	  }
 	} else {
 	  found = false;
 	}
@@ -70,7 +88,7 @@ Formatter::format(ipna::parser::Record::RecordPtr record, std::ostream& os) {
       throw std::runtime_error(sstr.str());
     }
     
-    out << '\t';
+    out << "  ";
   }
 
   out << std::endl;

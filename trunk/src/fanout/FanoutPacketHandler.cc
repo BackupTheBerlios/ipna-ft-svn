@@ -56,15 +56,41 @@ FanoutPacketHandler::addEngineMapping(const HostPort& hp) {
 
 bool
 FanoutPacketHandler::setEngineId(Packet::PacketPtr packet) {
-  struct cnfp_v9_hdr *header = (struct cnfp_v9_hdr*)packet->getBytes();
-  typedef vector<network::HostPort> EngineMap;
-  for (EngineMap::iterator it = engineMapping.begin(); it != engineMapping.end(); it++) {
-    if (packet->getFrom() == it->host) {
-      LOG_DEBUG("mapping " << packet->getFrom().toString().toStdString() << " to " << it->port);
-      header->engine_id = htonl(it->port);
-      return true;
-    }
+  struct cnfp_common_hdr *common_hdr = (struct cnfp_common_hdr*)(packet->getBytes());
+
+  // handle version
+  switch (ntohs(common_hdr->version)) {
+	case CNFPv5:
+	        {
+                struct cnfp_v5_hdr *header = (struct cnfp_v5_hdr*)packet->getBytes();
+                typedef vector<network::HostPort> EngineMap;
+                for (EngineMap::iterator it = engineMapping.begin(); it != engineMapping.end(); it++) {
+                  if (packet->getFrom() == it->host) {
+                    LOG_DEBUG("mapping " << packet->getFrom().toString().toStdString() << " to " << it->port);
+                    header->engine_id = htonl(it->port);
+                    return true;
+                  }
+                }
+		}
+		break;
+	case CNFPv9:
+	        {
+                struct cnfp_v9_hdr *header = (struct cnfp_v9_hdr*)packet->getBytes();
+                typedef vector<network::HostPort> EngineMap;
+                for (EngineMap::iterator it = engineMapping.begin(); it != engineMapping.end(); it++) {
+                  if (packet->getFrom() == it->host) {
+                    LOG_DEBUG("mapping " << packet->getFrom().toString().toStdString() << " to " << it->port);
+                    header->engine_id = htonl(it->port);
+                    return true;
+                  }
+                }
+		}
+		break;
+	default:
+		LOG_ERROR("setEngineID(): netflow format " << common_hdr->version << " currently not supported!");
+		break;
   }
+
   return false;
 }
 
@@ -72,32 +98,62 @@ bool
 FanoutPacketHandler::handlePacket(Packet::PacketPtr packet) {
   setEngineId(packet);
   
-  struct cnfp_v9_hdr header;
-  
-  // analyze a little bit
-  header = *(struct cnfp_v9_hdr*)packet->getBytes();
-  //  checkSequenceNumber(ntohl(header.seq));
+  unsigned short version = 0;
+  unsigned short count = 0;
+  unsigned int uptime = 0;
+  unsigned int tstamp = 0;
+  unsigned int seq = 0;
+  int engine_id = -1;
+  unsigned int __seq_increment = 1;
+
+  struct cnfp_common_hdr *common_hdr = (struct cnfp_common_hdr*)(packet->getBytes());
+  switch (ntohs(common_hdr->version)) {
+  	case CNFPv5:
+		{
+		  // analyze a little bit
+		  struct cnfp_v5_hdr header = *(struct cnfp_v5_hdr*)packet->getBytes();
+		  version = ntohs(header.common.version);
+		  count = ntohs(header.common.count);
+		  uptime = ntohl(header.uptime);
+		  tstamp = ntohl(header.tstamp);
+		  seq = ntohl(header.seq);
+		  engine_id = ntohl(header.engine_id);
+		  __seq_increment = count;
+		}
+		break;
+	case CNFPv9:
+		{
+		  // analyze a little bit
+		  struct cnfp_v9_hdr header = *(struct cnfp_v9_hdr*)packet->getBytes();
+		  version = ntohs(common_hdr->version);
+		  count = ntohs(header.common.count);
+		  uptime = ntohl(header.uptime);
+		  tstamp = ntohl(header.tstamp);
+		  seq = ntohl(header.seq);
+		  engine_id = ntohl(header.engine_id);
+		  __seq_increment = 1;
+		}
+		break;
+	default:
+		LOG_ERROR("handlePacket(): netflow format " << common_hdr->version << " currently not supported!");
+		break;
+  }
+
   SequenceNumberChecker::SequenceError seq_err =
-    sequenceChecker->check(ntohl(header.seq));
+    sequenceChecker->check(seq, __seq_increment);
   if (seq_err == SequenceNumberChecker::SEQ_MISSED) {
-    LOG_WARN("missed " << (int)(sequenceChecker->missed()) << " packet(s)");
+    LOG_DEBUG("missed " << (int)(sequenceChecker->missed()) << " packet(s)");
   }
 
   if (logger->isDebugEnabled()) {
     fprintf(stderr, "version:%d count:%u uptime:%u tstamp:%u seq:%u source:%d\n",
-	    ntohs(header.common.version),
-	    ntohs(header.common.count),
-	    ntohl(header.uptime),
-	    ntohl(header.tstamp),
-	    ntohl(header.seq),
-	    ntohl(header.engine_id)
-	    );
-  }
+	    version, count, uptime, tstamp, seq, engine_id);
+  } 
 
   bool deliveredAll = true;
   // deliver packets
   for (vector<network::HostPort>::const_iterator d = destinations.begin(); d != destinations.end(); d++) {
-    quint64 sent = socket->writeDatagram(packet->getBytes(), packet->getLength(), d->host, d->port);
+    qint64 sent = socket->writeDatagram(packet->getBytes(), packet->getLength(), d->host, d->port);
     if (sent == -1) {
       LOG_WARN("could not deliver datagram: " << socket->errorString().toStdString());
       deliveredAll = false;

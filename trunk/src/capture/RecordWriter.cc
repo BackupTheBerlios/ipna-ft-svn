@@ -21,6 +21,8 @@ using namespace ipna;
 using namespace ipna::capture;
 using namespace ipna::parser;
 
+Logger::LoggerPtr RecordWriter::logger = Logger::getLogger("ipna.capture.RecordWriter");
+
 RecordWriter::RecordWriter(Formatter::FormatterPtr formatter)
   : _formatter(formatter) {
   setStream(std::cout);
@@ -37,7 +39,11 @@ RecordWriter::write(PacketParser::RecordVectorPtr records) {
 
 void
 RecordWriter::write(Record::RecordPtr r) {
-  getFormatter()->format(r, getStream());
+  try {
+    getFormatter()->format(r, getStream());
+  } catch (std::exception& e) {
+    LOG_ERROR("could not format record: " << e.what());
+  }
 }
 
 RecordWriter::RecordWriterPtr

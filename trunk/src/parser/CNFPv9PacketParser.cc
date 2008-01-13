@@ -43,7 +43,7 @@ CNFPv9PacketParser::analyze(Packet::PacketPtr packet) {
     fflush(stderr);
   }
 
-  return ntohs(_header.common.version) == 9;
+  return ntohs(_header.common.version) == CNFPv9;
 }
 
 size_t

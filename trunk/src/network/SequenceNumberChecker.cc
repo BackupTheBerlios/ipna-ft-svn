@@ -29,13 +29,13 @@ SequenceNumberChecker::SequenceNumberChecker(size_t maxSize)
 }
 
 SequenceNumberChecker::SequenceError
-SequenceNumberChecker::check(seq_t sn) {
+SequenceNumberChecker::check(seq_t sn, seq_t inc) {
   _current = sn;
   SequenceError state = SEQ_OK;
   unsigned int foundIdx = _sequence.size();
 
   for (unsigned int idx = _lastSequenceIdx; idx != (_lastSequenceIdx-1)%_maxSize; idx = (idx+1)%_maxSize) {
-    if ((_sequence[idx]+1) == _current) {
+    if ((_sequence[idx]+inc) == _current) {
       foundIdx = idx;
       break;
     } else if (_sequence[idx] > _current) {
@@ -44,7 +44,7 @@ SequenceNumberChecker::check(seq_t sn) {
     }
   }
 
-  if (foundIdx != _sequence.size() && ((_sequence[_lastSequenceIdx]+1) != _current)) {
+  if (foundIdx != _sequence.size() && ((_sequence[_lastSequenceIdx]+inc) != _current)) {
     state = SEQ_REORDER;
     //    cerr << "packet-reordering occured within window: [" << _sequence[foundIdx] << ":" << _sequence[_lastSequenceIdx] << "]" << endl;
   } else if (foundIdx == _sequence.size()) {
@@ -55,7 +55,7 @@ SequenceNumberChecker::check(seq_t sn) {
   //  cerr << "state: " << state << " lastIdx: " << _lastSequenceIdx << " current: " << _current << ": " << toString() << endl;
   
   // store the new sequence
-  _lastSequenceIdx = (_lastSequenceIdx+1) % _maxSize;
+  _lastSequenceIdx = (_lastSequenceIdx+inc) % _maxSize;
   _sequence[_lastSequenceIdx] = _current;
   _lastState = state;
 

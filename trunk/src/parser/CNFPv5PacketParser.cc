@@ -30,7 +30,6 @@ ipna::Logger::LoggerPtr CNFPv5PacketParser::logger = ipna::Logger::getLogger("ip
 CNFPv5PacketParser::CNFPv5PacketParser()
   : PacketParser() {
   Template::TemplatePtr tmpl(new Template(v5TemplateId));
-  logger->setPriority(Logger::DEBUG);
   // add v5 format
   tmpl->addField(IPV4_SRC_ADDR, 4);
   tmpl->addField(IPV4_DST_ADDR, 4);
@@ -73,7 +72,7 @@ CNFPv5PacketParser::analyze(Packet::PacketPtr packet) {
     fflush(stderr);
   }
 
-  return ntohs(header->common.version) == 5;
+  return ntohs(header->common.version) == CNFPv5;
 }
 
 size_t

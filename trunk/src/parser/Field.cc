@@ -61,6 +61,22 @@ Field::asUInt() const {
   }
 }
 
+unsigned int
+Field::getMaximumWidth() const {
+  assert(0 < _numBytes && _numBytes <= 4);
+
+  switch (_numBytes) {
+  case 1:
+    return 4; // -127 <= x < 128
+  case 2:
+    return 6;
+  case 4:
+    return 11;
+  default:
+    throw std::runtime_error("cannot determine maximum width for this field");
+  }
+}
+
 std::ostream&
 operator<<(std::ostream& os, const Field& field) {
   return os << field.toString();
@@ -71,12 +87,26 @@ IPField::toString() const {
   if (4 == _numBytes) {
     return QHostAddress(asUInt()).toString().toStdString();
   } else if (16 == _numBytes) {
-    return QHostAddress(_bytes).toString().toStdString();
+    Q_IPV6ADDR ipv6_addr;
+    for (int i = 0; i < 16; ++i) ipv6_addr.c[i] = _bytes[i];
+    QHostAddress qhaddr(ipv6_addr);
+    return qhaddr.toString().toStdString();
   } else {
     throw std::runtime_error("no ip address");
   }
 }
 
+unsigned int
+IPField::getMaximumWidth() const {
+  if (4 == _numBytes) {
+    return (4*3 + 3);
+  } else if (16 == _numBytes) {
+    return (4*8 + 7);
+  } else {
+    throw std::runtime_error("no ip address");
+  }
+}
+ 
 std::string
 MACField::toString() const {
   if (6 == _numBytes) {
@@ -92,7 +122,22 @@ MACField::toString() const {
   }
 }
 
+unsigned int
+MACField::getMaximumWidth() const {
+  if (6 == _numBytes) {
+    return (6*2+5);
+  } else {
+    throw std::runtime_error("no mac address");
+  }
+}
+
 std::string
 StringField::toString() const {
   return std::string(_bytes);
 }
+
+unsigned int
+StringField::getMaximumWidth() const {
+  return _numBytes;
+}
+

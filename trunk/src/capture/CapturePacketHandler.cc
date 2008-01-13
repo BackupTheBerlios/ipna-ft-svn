@@ -33,7 +33,7 @@ using namespace ipna::capture;
 using namespace ipna::network;
 using namespace ipna::parser;
 
-Logger::LoggerPtr CapturePacketHandler::logger = Logger::getLogger("ipna.capture");
+Logger::LoggerPtr CapturePacketHandler::logger = Logger::getLogger("ipna.capture.packetHandler");
 
 CapturePacketHandler::CapturePacketHandler(RecordWriter::RecordWriterPtr writer, unsigned int queueSize) :
   sequenceChecker(new SequenceNumberChecker()),
@@ -55,8 +55,10 @@ bool
 CapturePacketHandler::handlePacket(ipna::network::Packet::PacketPtr packet) {
   ParserPtr parser = parserFactory->getParser(packet->getBytes());
 
-  if (!parser->analyze(packet))
+  if (!parser->analyze(packet)) {
+    LOG_WARN("packet could not be handled (no suitable parser)");
     return false;
+  }
 
   size_t seq = parser->getSequenceNumber();
   size_t numNewRecords = parser->parse(packet, records);
@@ -68,11 +70,11 @@ CapturePacketHandler::handlePacket(ipna::network::Packet::PacketPtr packet) {
     records->clear();
   }
   
-  SequenceNumberChecker::SequenceError seq_err =
-    sequenceChecker->check(seq);
-  if (seq_err == SequenceNumberChecker::SEQ_MISSED) {
-    logger->warn() << "missed " << (int)(sequenceChecker->missed()) << " packet(s)" << std::endl;
-  }
+//  SequenceNumberChecker::SequenceError seq_err =
+//    sequenceChecker->check(seq);
+//  if (seq_err == SequenceNumberChecker::SEQ_MISSED) {
+//    logger->warn() << "missed " << (int)(sequenceChecker->missed()) << " packet(s)" << std::endl;
+//  }
 
   return true;
 }

@@ -39,7 +39,7 @@ namespace ipna {
       SequenceNumberChecker(size_t maxSize = 128);
       virtual ~SequenceNumberChecker() {}
       
-      SequenceError check(seq_t sequenceNumber);
+      SequenceError check(seq_t sequenceNumber, seq_t increment=1);
       SequenceError state();
       bool ok();
       int missed();

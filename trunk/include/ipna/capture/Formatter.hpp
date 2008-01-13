@@ -26,6 +26,7 @@
 #include <vector>
 #include <utility>
 #include <boost/shared_ptr.hpp>
+#include <ipna/Logger.hpp>
 #include <ipna/parser/Record.hpp>
 #include <algorithm>
 
@@ -65,6 +66,8 @@ namespace ipna {
       std::ostream& format(ipna::parser::Record::RecordPtr record, std::ostream& os);
     protected:
       std::vector<std::list<int> > _columns;
+    private:
+      static ipna::Logger::LoggerPtr logger;
     };
   } // capture
 } // ipna

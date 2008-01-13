@@ -43,6 +43,7 @@ namespace ipna {
       inline size_t getId() const { return _id; }
 
       unsigned int asUInt() const;
+      virtual unsigned int getMaximumWidth() const;
       std::string asIp() const;
     protected:
       char *_bytes;
@@ -56,7 +57,8 @@ namespace ipna {
       ~IPField() {}
       
       virtual std::string toString() const;
-    };
+      virtual unsigned int getMaximumWidth() const;
+     };
 
     class MACField : public Field {
     public:
@@ -64,7 +66,8 @@ namespace ipna {
       ~MACField() {}
 
       virtual std::string toString() const;
-    };
+      virtual unsigned int getMaximumWidth() const;
+     };
 
     class StringField : public Field {
     public:
@@ -72,7 +75,8 @@ namespace ipna {
       ~StringField() {}
 
       virtual std::string toString() const;
-    };
+      virtual unsigned int getMaximumWidth() const;
+     };
     
     std::ostream& operator<<(std::ostream&, const Field&);
   }

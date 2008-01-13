@@ -25,6 +25,7 @@
 #include <ipna/parser/Record.hpp>
 #include <ipna/parser/PacketParser.hpp>
 #include <ipna/capture/Formatter.hpp>
+#include <ipna/Logger.hpp>
 #include <boost/shared_ptr.hpp>
 
 namespace ipna {
@@ -51,6 +52,7 @@ namespace ipna {
 	return _formatter;
       }
     private:
+      static ipna::Logger::LoggerPtr logger;
       std::ostream *_stream;
       Formatter::FormatterPtr _formatter;
     }; // class RecordWriter
